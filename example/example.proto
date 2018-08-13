@@ -33,7 +33,7 @@ message UserResponse {
     repeated User data = 1;
 }
 
-service TstService {
+service TestService {
     rpc List (ListRequest) returns (UserResponse) {
     }
 

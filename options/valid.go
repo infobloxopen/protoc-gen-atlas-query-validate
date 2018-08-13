@@ -43,7 +43,7 @@ func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[
 				return nil
 			}
 		default:
-			return fmt.Errorf("Non suported")
+			return fmt.Errorf("Not supported")
 		}
 
 		tp := ""
@@ -61,7 +61,7 @@ func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[
 		for _, val := range permData.Deny {
 			if val == tp {
 				fullPath := strings.Join(path, ".")
-				return fmt.Errorf("Operation %s does not allowed for '%s'", tp, fullPath)
+				return fmt.Errorf("Operation %s is not allowed for '%s'", tp, fullPath)
 			}
 		}
 		return nil
@@ -157,11 +157,11 @@ func ValidateSortingPermissions(p *query.Sorting, objName string, perms map[stri
 					return nil
 				}
 			default:
-				return fmt.Errorf("Non suported")
+				return fmt.Errorf("Not supported")
 			}
 
 			if permData.DisableSorting {
-				res = fmt.Errorf("pagination doesn't allowd for '%s'", tag)
+				res = fmt.Errorf("pagination is not allowed for '%s'", tag)
 				break
 			}
 		}

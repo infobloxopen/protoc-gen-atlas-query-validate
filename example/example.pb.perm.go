@@ -25,19 +25,19 @@ var exampleMessagesRequiredValidation = map[string]map[string]options.FilteringO
 	"User": {
 		"first_name":  options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
 		"middle_name": options.FilteringOption{DisableSorting: true, Deny: []string{""}},
-		"last_name":   options.FilteringOption{DisableSorting: false, Deny: []string{"LE", "MATCH", "GT", "GE", "LT"}},
-		"age":         options.FilteringOption{DisableSorting: false, Deny: []string{"GT", "GE", "LT", "LE", "EQ"}},
+		"last_name":   options.FilteringOption{DisableSorting: false, Deny: []string{"MATCH", "GT", "GE", "LT", "LE"}},
+		"age":         options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
 		"height":      options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "LT", "LE"}},
 		"weight":      options.FilteringOption{DisableSorting: false, Deny: []string{"LE"}},
 		"OnVacation":  options.FilteringOption{DisableSorting: true, Deny: []string{""}},
 	},
 }
 var exampleMethodsRequiredFilteringValidation = map[string]string{
-	"/example.TstService/List": "User",
+	"/example.TestService/List": "User",
 }
 var exampleMethodsRequiredPagingValidation = map[string]string{
-	"/example.TstService/List": "User",
-	"/example.TstService/Read": "User",
+	"/example.TestService/List": "User",
+	"/example.TestService/Read": "User",
 }
 
 func Validate(f *query.Filtering, p *query.Sorting, methodName string) error {

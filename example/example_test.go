@@ -8,26 +8,26 @@ import (
 
 func TestFilteringPermissionsValidation(t *testing.T) {
 	data := map[string]string{
-		"first_name==\"Jan\"":      "Operation EQ does not allowed for 'first_name'",
-		"User.first_name!=\"Sam\"": "Operation EQ does not allowed for 'User.first_name'",
+		"first_name==\"Jan\"":      "Operation EQ is not allowed for 'first_name'",
+		"User.first_name!=\"Sam\"": "Operation EQ is not allowed for 'User.first_name'",
 		"first_name~\"Sam.*\"":     "",
 
 		"middle_name==\"Jan\"":       "",
 		"middle_name!=\"Sam\"":       "",
 		"User.middle_name~\"Sam.*\"": "",
 
-		"last_name~\"Jan\"":         "Operation MATCH does not allowed for 'last_name'",
-		"User.last_name!~\"Sam\"":   "Operation MATCH does not allowed for 'User.last_name'",
+		"last_name~\"Jan\"":         "Operation MATCH is not allowed for 'last_name'",
+		"User.last_name!~\"Sam\"":   "Operation MATCH is not allowed for 'User.last_name'",
 		"last_name==\"Sam.*\"":      "",
 		"User.last_name!=\"Sam.*\"": "",
 
-		"age==18":     "Operation EQ does not allowed for 'age'",
-		"age>=18":     "Operation GE does not allowed for 'age'",
-		"User.age<18": "Operation LT does not allowed for 'User.age'",
+		"age==18":     "Operation EQ is not allowed for 'age'",
+		"age>=18":     "Operation GE is not allowed for 'age'",
+		"User.age<18": "Operation LT is not allowed for 'User.age'",
 
 		"height>=180":     "",
-		"height>180":      "Operation GT does not allowed for 'height'",
-		"User.height<180": "Operation LT does not allowed for 'User.height'",
+		"height>180":      "Operation GT is not allowed for 'height'",
+		"User.height<180": "Operation LT is not allowed for 'User.height'",
 	}
 
 	for param, expected := range data {
@@ -36,7 +36,7 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid filtering data '%s'", param)
 		}
-		resp := Validate(f, nil, "/example.TstService/List")
+		resp := Validate(f, nil, "/example.TestService/List")
 		if resp != nil {
 			response = resp.Error()
 		}
@@ -61,7 +61,7 @@ func TestFilteringPermissionsValidationForRead(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid filtering data '%s'", param)
 		}
-		resp := Validate(f, nil, "/example.TstService/Read")
+		resp := Validate(f, nil, "/example.TestService/Read")
 		if resp != nil {
 			t.Errorf("Error, for filtering data '%s' got '%s'", param, resp.Error())
 		}
@@ -71,8 +71,8 @@ func TestFilteringPermissionsValidationForRead(t *testing.T) {
 
 func TestSortingPermissionsValidation(t *testing.T) {
 	data := map[string]string{
-		"first_name, height, middle_name":                "pagination doesn't allowd for 'middle_name'",
-		"User.first_name, User.height, User.middle_name": "pagination doesn't allowd for 'User.middle_name'",
+		"first_name, height, middle_name":                "pagination is not allowed for 'middle_name'",
+		"User.first_name, User.height, User.middle_name": "pagination is not allowed for 'User.middle_name'",
 	}
 
 	for param, expected := range data {
@@ -81,7 +81,7 @@ func TestSortingPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid paging data '%s'", param)
 		}
-		resp := Validate(nil, p, "/example.TstService/List")
+		resp := Validate(nil, p, "/example.TestService/List")
 		if resp != nil {
 			response = resp.Error()
 		}
