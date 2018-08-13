@@ -22,8 +22,8 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		"User.last_name!=\"Sam.*\"": "",
 
 		"age==18":     "Operation EQ does not allowed for 'age'",
-		"age>=18":     "",
-		"User.age<18": "",
+		"age>=18":     "Operation GE does not allowed for 'age'",
+		"User.age<18": "Operation LT does not allowed for 'User.age'",
 
 		"height>=180":     "",
 		"height>180":      "Operation GT does not allowed for 'height'",
