@@ -23,7 +23,7 @@ var unneededImports = []string{
 	"import _ \"github.com/infobloxopen/atlas-app-toolkit/query\"\n",
 	"import _ \"github.com/infobloxopen/atlas-app-toolkit/rpc/resource\"\n",
 	"import _ \"github.com/infobloxopen/atlas-contacts-app/pkg/valid\"\n",
-	"import _ \"github.com/infobloxopen/atlas-app-toolkit/query/protoc-gen-perm/options/\"\n",
+	"import _ \"github.com/infobloxopen/protoc-gen-perm/options/\"\n",
 }
 
 // CleanImports removes extraneous imports and lines from a proto response
@@ -40,6 +40,6 @@ func CleanImports(pFileText *string) *string {
 
 // GenerateImports writes out required imports for the generated files
 func (p *PermPlugin) GenerateImports(file *generator.FileDescriptor) {
-	p.PrintImport("options", "github.com/infobloxopen/atlas-app-toolkit/query/protoc-gen-perm/options")
+	p.PrintImport("options", "github.com/infobloxopen/protoc-gen-perm/options")
 	p.PrintImport("query", "github.com/infobloxopen/atlas-app-toolkit/query")
 }

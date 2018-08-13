@@ -10,7 +10,7 @@ import (
 	"github.com/gogo/protobuf/protoc-gen-gogo/generator"
 	plugin "github.com/gogo/protobuf/protoc-gen-gogo/plugin"
 	"github.com/infobloxopen/atlas-app-toolkit/query"
-	"github.com/infobloxopen/atlas-app-toolkit/query/protoc-gen-perm/options"
+	"github.com/infobloxopen/protoc-gen-perm/options"
 )
 
 const (
