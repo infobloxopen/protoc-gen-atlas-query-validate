@@ -23,11 +23,11 @@ import _ "github.com/infobloxopen/protoc-gen-perm/options"
 
 var exampleMessagesRequiredValidation = map[string]map[string]options.FilteringOption{
 	"User": {
-		"first_name":  options.FilteringOption{DisableSorting: false, Deny: []string{"GE", "LT", "LE", "EQ", "GT"}},
+		"first_name":  options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
 		"middle_name": options.FilteringOption{DisableSorting: true, Deny: []string{""}},
-		"last_name":   options.FilteringOption{DisableSorting: false, Deny: []string{"GE", "LT", "LE", "MATCH", "GT"}},
-		"age":         options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
-		"height":      options.FilteringOption{DisableSorting: false, Deny: []string{"LT", "LE", "EQ", "GT"}},
+		"last_name":   options.FilteringOption{DisableSorting: false, Deny: []string{"LE", "MATCH", "GT", "GE", "LT"}},
+		"age":         options.FilteringOption{DisableSorting: false, Deny: []string{"GT", "GE", "LT", "LE", "EQ"}},
+		"height":      options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "LT", "LE"}},
 		"weight":      options.FilteringOption{DisableSorting: false, Deny: []string{"LE"}},
 		"OnVacation":  options.FilteringOption{DisableSorting: true, Deny: []string{""}},
 	},

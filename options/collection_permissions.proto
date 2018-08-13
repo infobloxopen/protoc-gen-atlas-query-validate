@@ -1,5 +1,5 @@
 syntax = "proto2";
-package atlas.api;
+package perm;
 
 option go_package = "github.com/infobloxopen/protoc-gen-perm/options/;options";
 

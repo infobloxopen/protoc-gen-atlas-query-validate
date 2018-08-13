@@ -6,13 +6,13 @@ import "github.com/infobloxopen/protoc-gen-perm/options/collection_permissions.p
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
 message User {
-    string first_name = 2 [(atlas.api.permissions).filters.allow = "MATCH"];
-    string middle_name = 3 [(atlas.api.permissions).disable_sorting = true];
-    string last_name = 4 [(atlas.api.permissions) = {filters: {allow: "EQ"}, disable_sorting: false}];
-    string age = 7 [(atlas.api.permissions).filters.allow = "MATCH"];;
-    int64 height = 15 [(atlas.api.permissions).filters.allow = "GE"];
-    float weight = 16 [(atlas.api.permissions).filters.deny = "LE"];
-    bool OnVacation = 17 [(atlas.api.permissions).disable_sorting = true];
+    string first_name = 2 [(perm.permissions).filters.allow = "MATCH"];
+    string middle_name = 3 [(perm.permissions).disable_sorting = true];
+    string last_name = 4 [(perm.permissions) = {filters: {allow: "EQ"}, disable_sorting: false}];
+    string age = 7 [(perm.permissions).filters.allow = "MATCH"];;
+    int64 height = 15 [(perm.permissions).filters.allow = "GE"];
+    float weight = 16 [(perm.permissions).filters.deny = "LE"];
+    bool OnVacation = 17 [(perm.permissions).disable_sorting = true];
 }
 
 
