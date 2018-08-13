@@ -19,3 +19,6 @@ perm-test: ./example/* ./test/*
 	protoc -I. -I${SRCPATH} -I../../vendor 	--perm_out="./" example/example.proto
 	go test  ./...
 	
+.PHONY: vendor
+vendor:
+	dep ensure -vendor-only
