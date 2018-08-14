@@ -6,7 +6,7 @@ default: options install
 
 .PHONY: options
 options:
-	protoc -I. -I$(SRCPATH) -I../../vendor  \
+	protoc -I. -I$(SRCPATH) -I./vendor  \
 		--gogo_out="Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor:$(SRCPATH)" \
 		options/collection_permissions.proto
 
@@ -16,7 +16,7 @@ install:
 
 .PHONY: perm-test
 perm-test: ./example/* ./test/*
-	protoc -I. -I${SRCPATH} -I../../vendor 	--perm_out="./" example/example.proto
+	protoc -I. -I${SRCPATH} -I./vendor 	--perm_out="./" example/example.proto
 	go test  ./...
 	
 .PHONY: vendor
