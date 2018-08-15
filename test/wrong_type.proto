@@ -1,0 +1,8 @@
+syntax = "proto3";
+package tst;
+
+import "github.com/infobloxopen/protoc-gen-perm/options/collection_permissions.proto";
+
+message User {
+    bool OnVacation = 17  [(perm.permissions).filters.deny = "LE"];
+}
