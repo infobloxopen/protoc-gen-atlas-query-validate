@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/ghodss/yaml"
+  packages = ["."]
+  revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
@@ -35,9 +41,39 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/golang/glog"
+  packages = ["."]
+  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+
+[[projects]]
+  branch = "master"
   name = "github.com/golang/protobuf"
-  packages = ["proto"]
+  packages = [
+    "jsonpb",
+    "proto",
+    "protoc-gen-go/descriptor",
+    "protoc-gen-go/generator",
+    "protoc-gen-go/generator/internal/remap",
+    "protoc-gen-go/plugin",
+    "ptypes/any",
+    "ptypes/struct"
+  ]
   revision = "89a0c16f4dc2a70c0ed864d8ef64878f24fdaa51"
+
+[[projects]]
+  name = "github.com/grpc-ecosystem/grpc-gateway"
+  packages = [
+    "codegenerator",
+    "protoc-gen-grpc-gateway/descriptor",
+    "protoc-gen-grpc-gateway/generator",
+    "protoc-gen-grpc-gateway/httprule",
+    "protoc-gen-swagger",
+    "protoc-gen-swagger/genswagger",
+    "protoc-gen-swagger/options",
+    "utilities"
+  ]
+  revision = "92583770e3f01b09a0d3e9bdf64321d8bebd48f2"
+  version = "v1.4.1"
 
 [[projects]]
   name = "github.com/infobloxopen/atlas-app-toolkit"
@@ -45,9 +81,21 @@
   revision = "923006bc4865501ab581efe4291f4f44c06dabb4"
   version = "v0.10.0"
 
+[[projects]]
+  branch = "master"
+  name = "google.golang.org/genproto"
+  packages = ["googleapis/api/annotations"]
+  revision = "d0a8f471bba2dbb160885b0000d814ee5d559bad"
+
+[[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8cf43e8e0adf0209e703e2d5348c49e4f2e3a17ae958c687013bc5bbb814fded"
+  inputs-digest = "ae4a89662b08b37362d08847f11873f3d86c021f1d1732f9110f82ba67848b03"
   solver-name = "gps-cdcl"
   solver-version = 1

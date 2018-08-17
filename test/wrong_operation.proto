@@ -1,8 +1,8 @@
 syntax = "proto3";
 package tst;
 
-import "github.com/infobloxopen/protoc-gen-perm/options/collection_permissions.proto";
+import "github.com/infobloxopen/protoc-gen-atlas-query-perm/options/collection_permissions.proto";
 
 message User {
-    string first_name = 2 [(perm.permissions).filters.allow = "SORT"];
+    string first_name = 2 [(atlas.query.permissions).filters.allow = "SORT"];
 }

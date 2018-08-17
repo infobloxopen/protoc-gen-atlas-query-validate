@@ -2,17 +2,17 @@
 syntax = "proto3";
 package example;
 
-import "github.com/infobloxopen/protoc-gen-perm/options/collection_permissions.proto";
+import "github.com/infobloxopen/protoc-gen-atlas-query-perm/options/collection_permissions.proto";
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
 message User {
-    string first_name = 2 [(perm.permissions).filters.allow = "MATCH"];
-    string middle_name = 3 [(perm.permissions).disable_sorting = true];
-    string last_name = 4 [(perm.permissions) = {filters: {allow: "EQ"}, disable_sorting: false}];
-    string age = 7 [(perm.permissions).filters.allow = "MATCH"];;
-    int64 height = 15 [(perm.permissions).filters.allow = "GE"];
-    float weight = 16 [(perm.permissions).filters.deny = "LE"];
-    bool OnVacation = 17 [(perm.permissions).disable_sorting = true];
+    string first_name = 2 [(atlas.query.permissions).filters.allow = "MATCH"];
+    string middle_name = 3 [(atlas.query.permissions).disable_sorting = true];
+    string last_name = 4 [(atlas.query.permissions) = {filters: {allow: "EQ"}, disable_sorting: false}];
+    string age = 7 [(atlas.query.permissions).filters.allow = "MATCH"];;
+    int64 height = 15 [(atlas.query.permissions).filters.allow = "GE"];
+    float weight = 16 [(atlas.query.permissions).filters.deny = "LE"];
+    bool OnVacation = 17 [(atlas.query.permissions).disable_sorting = true];
 }
 
 

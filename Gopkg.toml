@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+required = ["github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger"]
 
 [[constraint]]
   name = "github.com/gogo/protobuf"

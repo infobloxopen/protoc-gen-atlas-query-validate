@@ -16,7 +16,8 @@ install:
 
 .PHONY: perm-test
 perm-test: ./example/* ./test/*
-	protoc -I. -I${SRCPATH} -I./vendor 	--perm_out="./" example/example.proto
+	echo ${SRCPATH}
+	protoc -I. -I${SRCPATH} -I./vendor -I./vendor/github.com/grpc-ecosystem/grpc-gateway --atlas-query-perm_out=. example/example.proto
 	go test  ./...
 	
 .PHONY: vendor
