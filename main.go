@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gogo/protobuf/vanity/command"
-	"github.com/infobloxopen/protoc-gen-perm/plugin"
+	"github.com/infobloxopen/protoc-gen-atlas-query-perm/plugin"
 )
 
 func main() {

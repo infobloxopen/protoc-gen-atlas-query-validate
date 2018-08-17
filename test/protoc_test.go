@@ -8,7 +8,7 @@ import (
 )
 
 func TestProtocOnInvalidProtoFiles(t *testing.T) {
-	t.Skipf("skip until protoc-gen-perm is added to atlas gentool")
+	t.Skipf("skip until protoc-gen-atlas-query-perm is added to atlas gentool")
 	data := map[string]string{
 		"wrong_operation.proto": "error:Error for message 'User': 'SORT' is unknown permission operation for field 'first_name'",
 		"wrong_type.proto":      "error:Error for message 'User': Field 'OnVacation' does not support permission operations, supported only by string and numeric types",
@@ -18,7 +18,7 @@ func TestProtocOnInvalidProtoFiles(t *testing.T) {
 
 	for fileName, expected := range data {
 		out, _ := exec.Command("protoc", "-I.", gosrc,
-			"--perm_out=\"./\"", fileName).CombinedOutput()
+			"--atlas-query-perm_out=\"./\"", fileName).CombinedOutput()
 		output := string(out)
 		if !strings.Contains(output, expected) {
 			t.Errorf("Error, expected error '%s' got  '%s'", expected, output)

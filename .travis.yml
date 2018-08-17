@@ -16,6 +16,6 @@ script:
   - make vendor
   - make install
   # NOTE: We will be able to run protoc commands from Travis once
-  # protoc-gen-perm is added to the atlas gentool. For now, we can just run
+  # protoc-gen-atlas-query-perm is added to the atlas gentool. For now, we can just run
   # tests to ensure that everything works as expected.
   - go test -v ./...

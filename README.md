@@ -1,1 +1,1 @@
-# protoc-gen-perm
+# protoc-gen-atlas-query-perm

@@ -10,7 +10,7 @@ import (
 	"github.com/gogo/protobuf/protoc-gen-gogo/generator"
 	plugin "github.com/gogo/protobuf/protoc-gen-gogo/plugin"
 	"github.com/infobloxopen/atlas-app-toolkit/query"
-	"github.com/infobloxopen/protoc-gen-perm/options"
+	"github.com/infobloxopen/protoc-gen-atlas-query-perm/options"
 )
 
 const (
@@ -43,7 +43,7 @@ func (p *PermPlugin) setFile(file *generator.FileDescriptor) {
 
 // Name identifies the plugin
 func (p *PermPlugin) Name() string {
-	return "perm"
+	return "atlas-query-perm"
 }
 
 // Init is called once after data structures are built but before
