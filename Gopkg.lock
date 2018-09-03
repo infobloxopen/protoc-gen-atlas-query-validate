@@ -55,10 +55,13 @@
     "protoc-gen-go/generator",
     "protoc-gen-go/generator/internal/remap",
     "protoc-gen-go/plugin",
+    "ptypes",
     "ptypes/any",
-    "ptypes/struct"
+    "ptypes/duration",
+    "ptypes/struct",
+    "ptypes/timestamp"
   ]
-  revision = "89a0c16f4dc2a70c0ed864d8ef64878f24fdaa51"
+  revision = "b27b920f9e71b439b873b17bf99f56467623814a"
 
 [[projects]]
   name = "github.com/grpc-ecosystem/grpc-gateway"
@@ -76,16 +79,99 @@
   version = "v1.4.1"
 
 [[projects]]
+  branch = "master"
   name = "github.com/infobloxopen/atlas-app-toolkit"
-  packages = ["query"]
-  revision = "923006bc4865501ab581efe4291f4f44c06dabb4"
-  version = "v0.10.0"
+  packages = [
+    "errors",
+    "query",
+    "rpc/errdetails",
+    "rpc/errfields"
+  ]
+  revision = "984731786f34f618665e2bd72d9567c1c8909e8d"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = [
+    "context",
+    "http/httpguts",
+    "http2",
+    "http2/hpack",
+    "idna",
+    "internal/timeseries",
+    "trace"
+  ]
+  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "2b024373dcd9800f0cae693839fac6ede8d64a8c"
+
+[[projects]]
+  name = "golang.org/x/text"
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable"
+  ]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
-  packages = ["googleapis/api/annotations"]
-  revision = "d0a8f471bba2dbb160885b0000d814ee5d559bad"
+  packages = [
+    "googleapis/api/annotations",
+    "googleapis/rpc/code",
+    "googleapis/rpc/status"
+  ]
+  revision = "11092d34479b07829b72e10713b159248caf5dad"
+
+[[projects]]
+  name = "google.golang.org/grpc"
+  packages = [
+    ".",
+    "balancer",
+    "balancer/base",
+    "balancer/roundrobin",
+    "codes",
+    "connectivity",
+    "credentials",
+    "encoding",
+    "encoding/proto",
+    "grpclog",
+    "internal",
+    "internal/backoff",
+    "internal/channelz",
+    "internal/envconfig",
+    "internal/grpcrand",
+    "internal/transport",
+    "keepalive",
+    "metadata",
+    "naming",
+    "peer",
+    "resolver",
+    "resolver/dns",
+    "resolver/passthrough",
+    "stats",
+    "status",
+    "tap"
+  ]
+  revision = "32fb0ac620c32ba40a4626ddf94d90d12cce3455"
+  version = "v1.14.0"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -96,6 +182,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ae4a89662b08b37362d08847f11873f3d86c021f1d1732f9110f82ba67848b03"
+  inputs-digest = "a1e662450042a6c7b1b3c9f1325019184bf3b813e5b653848b35ab1d606e52ad"
   solver-name = "gps-cdcl"
   solver-version = 1
