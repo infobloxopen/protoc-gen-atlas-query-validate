@@ -1,7 +1,7 @@
 syntax = "proto2";
 package atlas.query;
 
-option go_package = "github.com/infobloxopen/protoc-gen-atlas-query-perm/options/;options";
+option go_package = "github.com/infobloxopen/protoc-gen-atlas-query-perm/options;options";
 
 import "google/protobuf/descriptor.proto";
 
