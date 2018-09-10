@@ -23,7 +23,7 @@ var unneededImports = []string{
 	"import _ \"github.com/infobloxopen/atlas-app-toolkit/query\"\n",
 	"import _ \"github.com/infobloxopen/atlas-app-toolkit/rpc/resource\"\n",
 	"import _ \"github.com/infobloxopen/atlas-contacts-app/pkg/valid\"\n",
-	"import _ \"github.com/infobloxopen/protoc-gen-atlas-query-perm/options/\"\n",
+	"import _ \"github.com/infobloxopen/protoc-gen-atlas-query-perm/options\"\n",
 }
 
 // CleanImports removes extraneous imports and lines from a proto response
