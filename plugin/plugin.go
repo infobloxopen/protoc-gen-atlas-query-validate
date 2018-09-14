@@ -9,6 +9,7 @@ import (
 	"github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
 	"github.com/gogo/protobuf/protoc-gen-gogo/generator"
 	plugin "github.com/gogo/protobuf/protoc-gen-gogo/plugin"
+
 	"github.com/infobloxopen/atlas-app-toolkit/query"
 	"github.com/infobloxopen/protoc-gen-atlas-query-perm/options"
 )
@@ -18,7 +19,7 @@ const (
 	sorting               = ".infoblox.api.Sorting"
 	permissionSuffix      = "MessagesRequiredValidation"
 	methodFilteringSuffix = "MethodsRequiredFilteringValidation"
-	methodPagingSuffix    = "MethodsRequiredPagingValidation"
+	methodSortingSuffix   = "MethodsRequiredSortingValidation"
 )
 
 // PermPlugin implements the plugin interface and creates validations for collection operation parameters code from .protos
@@ -37,7 +38,7 @@ func (p *PermPlugin) setFile(file *generator.FileDescriptor) {
 	baseFileName := filepath.Base(file.GetName())
 	p.messagePermissionsData = strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + permissionSuffix
 	p.requiredFilteringValidationMethodsData = strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodFilteringSuffix
-	p.requiredSortingValidationMethodsData = strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodPagingSuffix
+	p.requiredSortingValidationMethodsData = strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodSortingSuffix
 
 }
 
@@ -74,11 +75,10 @@ func (p *PermPlugin) genValidationData() {
 		fullMsgName := fmt.Sprintf(".%s.%s", *packageName, generator.CamelCaseSlice(msg.TypeName()))
 		messagesByName[fullMsgName] = msg
 
-		hasFiltering, hasSorting, isGenerated := p.generateMessagePermissions(msg)
+		hasFiltering, hasSorting := p.generateMessagePermissions(msg)
 
-		if isGenerated {
-			msgRequireValidations[fullMsgName] = struct{}{}
-		}
+		msgRequireValidations[fullMsgName] = struct{}{}
+
 		if hasFiltering {
 			msgWithFilteringField[fullMsgName] = struct{}{}
 		}
@@ -124,12 +124,12 @@ func (p *PermPlugin) hasRequiredValidationField(msg *generator.Descriptor, requi
 	return ""
 }
 
-func (p *PermPlugin) generateMessagePermissions(msg *generator.Descriptor) (bool, bool, bool) {
+func (p *PermPlugin) generateMessagePermissions(msg *generator.Descriptor) (bool, bool) {
 	msgTypeName := generator.CamelCaseSlice(msg.TypeName())
 	hasFilteringField := false
 	hasSortingField := false
-	msgHasFieldWithPermissions := false
 
+	p.P(`"`, msgTypeName, `": {`)
 	for _, msgField := range msg.GetField() {
 
 		if msgField.GetTypeName() == filtering {
@@ -141,28 +141,24 @@ func (p *PermPlugin) generateMessagePermissions(msg *generator.Descriptor) (bool
 		}
 
 		permissionOpts := getFieldPermissionsOption(msgField)
-		if permissionOpts == nil {
-			continue
-		}
 
 		msgFieldName := msgField.GetName()
 		denyOps, err := getDenyOperations(msgFieldName, msgField.GetType().String(), permissionOpts)
 		if err != nil {
 			p.Fail(fmt.Sprintf(`Error for message '%s': %s`, msgTypeName, err.Error()))
 		}
-
-		if permissionOpts.GetDisableSorting() || len(denyOps) > 0 {
-			if !msgHasFieldWithPermissions {
-				msgHasFieldWithPermissions = true
-				p.P(`"`, msgTypeName, `": {`)
-			}
-			p.P(`"`, msgFieldName, `": options.FilteringOption{DisableSorting: `, permissionOpts.GetDisableSorting(), `, Deny: []string{"`, denyOps, `"}},`)
+		var s string
+		if permissionOpts.GetDisableSorting() {
+			s = `DisableSorting: true,`
 		}
+		var f string
+		if len(denyOps) != 0 {
+			f = `Deny: []string{"` + strings.Join(denyOps, `","`) + `"}`
+		}
+		p.P(`"`, msgFieldName, `": options.FilteringOption{`+s+f+`},`)
 	}
-	if msgHasFieldWithPermissions {
-		p.P(`},`)
-	}
-	return hasFilteringField, hasSortingField, msgHasFieldWithPermissions
+	p.P(`},`)
+	return hasFilteringField, hasSortingField
 }
 
 func getFieldPermissionsOption(field *descriptor.FieldDescriptorProto) *options.CollectionPermissions {
@@ -181,7 +177,7 @@ func getFieldPermissionsOption(field *descriptor.FieldDescriptorProto) *options.
 }
 
 // getDenyOperations - returns list of denied operations if possible or error
-func getDenyOperations(fieldName string, fieldType string, permissionOpts *options.CollectionPermissions) (string, error) {
+func getDenyOperations(fieldName string, fieldType string, permissionOpts *options.CollectionPermissions) ([]string, error) {
 	res := []string{}
 
 	f := permissionOpts.GetFilters()
@@ -189,10 +185,10 @@ func getDenyOperations(fieldName string, fieldType string, permissionOpts *optio
 	opsDenied := f.GetDeny()
 
 	if len(opsAllowed) == 0 && len(opsDenied) == 0 {
-		return "", nil
+		return nil, nil
 	}
 	if len(opsAllowed) > 0 && len(opsDenied) > 0 {
-		return "", fmt.Errorf("Field '%s' contains both permission options (deny and allow), but only one is allowed", fieldName)
+		return nil, fmt.Errorf("Field '%s' contains both permission options (deny and allow), but only one is allowed", fieldName)
 	}
 
 	var supportedOps map[string]int32
@@ -207,7 +203,7 @@ func getDenyOperations(fieldName string, fieldType string, permissionOpts *optio
 		"TYPE_SINT32", "TYPE_SINT64":
 		supportedOps = query.NumberCondition_Type_value
 	default:
-		return "", fmt.Errorf("Field '%s' does not support permission operations, supported only by string and numeric types", fieldName)
+		return nil, fmt.Errorf("Field '%s' does not support permission operations, supported only by string and numeric types", fieldName)
 	}
 
 	ops := opsAllowed
@@ -220,7 +216,7 @@ func getDenyOperations(fieldName string, fieldType string, permissionOpts *optio
 		item := strings.TrimSpace(item)
 		_, ok := supportedOps[item]
 		if !ok {
-			return "", fmt.Errorf("'%s' is unknown permission operation for field '%s'", item, fieldName)
+			return nil, fmt.Errorf("'%s' is unknown permission operation for field '%s'", item, fieldName)
 		}
 	}
 
@@ -240,7 +236,7 @@ func getDenyOperations(fieldName string, fieldType string, permissionOpts *optio
 	} else {
 		res = vals
 	}
-	return strings.Join(res, "\", \""), nil
+	return res, nil
 }
 
 func (p *PermPlugin) genValidationFunc() {

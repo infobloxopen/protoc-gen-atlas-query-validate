@@ -10,19 +10,31 @@ import query "github.com/infobloxopen/atlas-app-toolkit/query"
 
 var exampleMessagesRequiredValidation = map[string]map[string]options.FilteringOption{
 	"User": {
-		"first_name":  options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
-		"middle_name": options.FilteringOption{DisableSorting: true, Deny: []string{""}},
-		"last_name":   options.FilteringOption{DisableSorting: false, Deny: []string{"LT", "LE", "MATCH", "GT", "GE"}},
-		"age":         options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
-		"height":      options.FilteringOption{DisableSorting: false, Deny: []string{"EQ", "GT", "LT", "LE"}},
-		"weight":      options.FilteringOption{DisableSorting: false, Deny: []string{"LE"}},
-		"OnVacation":  options.FilteringOption{DisableSorting: true, Deny: []string{""}},
+		"first_name":  options.FilteringOption{Deny: []string{"LT", "LE", "EQ", "GT", "GE"}},
+		"weight":      options.FilteringOption{Deny: []string{"LE"}},
+		"on_vacation": options.FilteringOption{DisableSorting: true},
+		"speciality":  options.FilteringOption{DisableSorting: true, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
+		"comment":     options.FilteringOption{},
+	},
+	"ListRequest": {
+		"filter":   options.FilteringOption{},
+		"order_by": options.FilteringOption{},
+		"fields":   options.FilteringOption{},
+		"paging":   options.FilteringOption{},
+	},
+	"ReadRequest": {
+		"order_by": options.FilteringOption{},
+		"fields":   options.FilteringOption{},
+		"paging":   options.FilteringOption{},
+	},
+	"UserResponse": {
+		"data": options.FilteringOption{},
 	},
 }
 var exampleMethodsRequiredFilteringValidation = map[string]string{
 	"/example.TestService/List": "User",
 }
-var exampleMethodsRequiredPagingValidation = map[string]string{
+var exampleMethodsRequiredSortingValidation = map[string]string{
 	"/example.TestService/List": "User",
 	"/example.TestService/Read": "User",
 }
@@ -36,7 +48,7 @@ func Validate(f *query.Filtering, p *query.Sorting, methodName string) error {
 	if res != nil {
 		return res
 	}
-	perm, ok = exampleMethodsRequiredPagingValidation[methodName]
+	perm, ok = exampleMethodsRequiredSortingValidation[methodName]
 	if !ok {
 		return nil
 	}
