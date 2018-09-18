@@ -6,13 +6,11 @@ import "github.com/infobloxopen/protoc-gen-atlas-query-perm/options/collection_p
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
 message User {
-    string first_name = 2 [(atlas.query.permissions).filters.allow = "MATCH"];
-    string middle_name = 3 [(atlas.query.permissions).disable_sorting = true];
-    string last_name = 4 [(atlas.query.permissions) = {filters: {allow: "EQ"}, disable_sorting: false}];
-    string age = 7 [(atlas.query.permissions).filters.allow = "MATCH"];;
-    int64 height = 15 [(atlas.query.permissions).filters.allow = "GE"];
-    float weight = 16 [(atlas.query.permissions).filters.deny = "LE"];
-    bool OnVacation = 17 [(atlas.query.permissions).disable_sorting = true];
+    string first_name = 1 [(atlas.query.permissions).filters.allow = "MATCH"];
+    float weight = 2 [(atlas.query.permissions).filters.deny = "LE"];
+    bool on_vacation = 3 [(atlas.query.permissions).disable_sorting = true];
+    string speciality = 4 [(atlas.query.permissions) = {filters: {allow: "MATCH"}, disable_sorting: true}];
+    string comment = 5;
 }
 
 

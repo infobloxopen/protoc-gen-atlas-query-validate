@@ -23,27 +23,14 @@ func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[
 
 	validate := func(path []string, f interface{}) error {
 
-		switch len(path) {
-		case 2:
-			objPerms, ok := perms[path[0]]
-			if !ok {
-				return nil
-			}
-			permData, ok = objPerms[path[1]]
-			if !ok {
-				return nil
-			}
-		case 1:
-			objPerms, ok := perms[objName]
-			if !ok {
-				return nil
-			}
-			permData, ok = objPerms[path[0]]
-			if !ok {
-				return nil
-			}
-		default:
-			return fmt.Errorf("Not supported")
+		objPerms, ok := perms[objName]
+		if !ok {
+			return nil
+		}
+		fieldTag := strings.Join(path, ".")
+		permData, ok = objPerms[fieldTag]
+		if !ok {
+			return fmt.Errorf("Unknown field: %s", fieldTag)
 		}
 
 		tp := ""
@@ -60,8 +47,7 @@ func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[
 		}
 		for _, val := range permData.Deny {
 			if val == tp {
-				fullPath := strings.Join(path, ".")
-				return fmt.Errorf("Operation %s is not allowed for '%s'", tp, fullPath)
+				return fmt.Errorf("Operation %s is not allowed for '%s'", tp, fieldTag)
 			}
 		}
 		return nil
@@ -135,33 +121,17 @@ func ValidateSortingPermissions(p *query.Sorting, objName string, perms map[stri
 	if p != nil {
 		for _, criteria := range p.GetCriterias() {
 			tag := criteria.GetTag()
-			path := strings.Split(tag, ".")
-
-			switch len(path) {
-			case 2:
-				objPerms, ok := perms[path[0]]
-				if !ok {
-					return nil
-				}
-				permData, ok = objPerms[path[1]]
-				if !ok {
-					return nil
-				}
-			case 1:
-				objPerms, ok := perms[objName]
-				if !ok {
-					return nil
-				}
-				permData, ok = objPerms[path[0]]
-				if !ok {
-					return nil
-				}
-			default:
-				return fmt.Errorf("Not supported")
+			objPerms, ok := perms[objName]
+			if !ok {
+				return nil
+			}
+			permData, ok = objPerms[tag]
+			if !ok {
+				return fmt.Errorf("Unknown field: %s", tag)
 			}
 
 			if permData.DisableSorting {
-				res = fmt.Errorf("pagination is not allowed for '%s'", tag)
+				res = fmt.Errorf("Sorting is not allowed for '%s'", tag)
 				break
 			}
 		}

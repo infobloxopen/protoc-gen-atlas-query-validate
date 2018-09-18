@@ -7,86 +7,65 @@ import (
 )
 
 func TestFilteringPermissionsValidation(t *testing.T) {
-	data := map[string]string{
-		"first_name==\"Jan\"":      "Operation EQ is not allowed for 'first_name'",
-		"User.first_name!=\"Sam\"": "Operation EQ is not allowed for 'User.first_name'",
-		"first_name~\"Sam.*\"":     "",
-
-		"middle_name==\"Jan\"":       "",
-		"middle_name!=\"Sam\"":       "",
-		"User.middle_name~\"Sam.*\"": "",
-
-		"last_name~\"Jan\"":         "Operation MATCH is not allowed for 'last_name'",
-		"User.last_name!~\"Sam\"":   "Operation MATCH is not allowed for 'User.last_name'",
-		"last_name==\"Sam.*\"":      "",
-		"User.last_name!=\"Sam.*\"": "",
-
-		"age==18":     "Operation EQ is not allowed for 'age'",
-		"age>=18":     "Operation GE is not allowed for 'age'",
-		"User.age<18": "Operation LT is not allowed for 'User.age'",
-
-		"height>=180":     "",
-		"height>180":      "Operation GT is not allowed for 'height'",
-		"User.height<180": "Operation LT is not allowed for 'User.height'",
+	tests := []struct {
+		Query string
+		Err   bool
+	}{
+		{`first_name~"Sam"`, false},
+		{`weight==1`, false},
+		{`comment=="comment1"`, false},
+		{`speciality~"spec"`, false},
+		{`first_name=="Sam"`, true},
+		{`weight<=1`, true},
+		{`first_name=="Jan"`, true},
+		{`speciality=="spec"`, true},
+		{`unknown_field=="unk"`, true},
 	}
 
-	for param, expected := range data {
-		response := ""
-		f, err := query.ParseFiltering(param)
+	for _, test := range tests {
+		f, err := query.ParseFiltering(test.Query)
 		if err != nil {
-			t.Fatalf("Invalid filtering data '%s'", param)
+			t.Fatalf("Invalid filtering data '%s'", test.Query)
 		}
-		resp := Validate(f, nil, "/example.TestService/List")
-		if resp != nil {
-			response = resp.Error()
-		}
-		if expected != response {
-			t.Errorf("Error, for filtering data '%s' expected '%s', got '%s'", param, expected, response)
-		}
-
-	}
-}
-
-func TestFilteringPermissionsValidationForRead(t *testing.T) {
-	data := []string{
-		"first_name==\"Jan\"",
-		"last_name~\"Jan\"",
-		"age==18",
-		"height>=180",
-		"height<180",
-	}
-
-	for _, param := range data {
-		f, err := query.ParseFiltering(param)
+		err = Validate(f, nil, "/example.TestService/List")
 		if err != nil {
-			t.Fatalf("Invalid filtering data '%s'", param)
+			if test.Err == false {
+				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
+			}
+		} else {
+			if test.Err == true {
+				t.Errorf("Expected error for %s query, but got no error", test.Query)
+			}
 		}
-		resp := Validate(f, nil, "/example.TestService/Read")
-		if resp != nil {
-			t.Errorf("Error, for filtering data '%s' got '%s'", param, resp.Error())
-		}
-
 	}
 }
 
 func TestSortingPermissionsValidation(t *testing.T) {
-	data := map[string]string{
-		"first_name, height, middle_name":                "pagination is not allowed for 'middle_name'",
-		"User.first_name, User.height, User.middle_name": "pagination is not allowed for 'User.middle_name'",
+	tests := []struct {
+		Query string
+		Err   bool
+	}{
+		{`first_name, weight`, false},
+		{`comment`, false},
+		{`on_vacation`, true},
+		{`speciality`, true},
+		{`unknown_field`, true},
 	}
 
-	for param, expected := range data {
-		response := ""
-		p, err := query.ParseSorting(param)
+	for _, test := range tests {
+		s, err := query.ParseSorting(test.Query)
 		if err != nil {
-			t.Fatalf("Invalid paging data '%s'", param)
+			t.Fatalf("Invalid sorting data '%s'", test.Query)
 		}
-		resp := Validate(nil, p, "/example.TestService/List")
-		if resp != nil {
-			response = resp.Error()
-		}
-		if expected != response {
-			t.Errorf("Error, for paging data '%s' expected '%s', got '%s'", param, expected, response)
+		err = Validate(nil, s, "/example.TestService/List")
+		if err != nil {
+			if test.Err == false {
+				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
+			}
+		} else {
+			if test.Err == true {
+				t.Errorf("Expected error for %s query, but got no error", test.Query)
+			}
 		}
 	}
 }
