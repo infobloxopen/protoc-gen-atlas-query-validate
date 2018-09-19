@@ -13,6 +13,12 @@ extend google.protobuf.FieldOptions {
 message CollectionPermissions {
   optional bool disable_sorting = 1;
   optional FilterOptions filters = 2;
+  enum FilterType {
+    DEFAULT = 0;
+    STRING = 1;
+    NUMBER = 2;
+  }
+  optional FilterType filter_type  = 3;
 }
 
 message FilterOptions {

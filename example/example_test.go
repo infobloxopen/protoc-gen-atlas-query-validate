@@ -15,11 +15,18 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		{`weight==1`, false},
 		{`comment=="comment1"`, false},
 		{`speciality~"spec"`, false},
+		{`last_name=="Smith"`, false},
+		{`last_name~"Smith"`, false},
+		{`id=="some_id"`, true},
 		{`first_name=="Sam"`, true},
 		{`weight<=1`, true},
 		{`first_name=="Jan"`, true},
 		{`speciality=="spec"`, true},
 		{`unknown_field=="unk"`, true},
+		{`id=="some_id"`, true},
+		{`array=="array"`, true},
+		{`custom_type=="custom_type"`, true},
+		{`custom_type_string~"custom_type"`, false},
 	}
 
 	for _, test := range tests {

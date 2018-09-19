@@ -5,31 +5,24 @@ package example
 
 import options "github.com/infobloxopen/protoc-gen-atlas-query-perm/options"
 import query "github.com/infobloxopen/atlas-app-toolkit/query"
+import _ "github.com/golang/protobuf/ptypes/wrappers"
 
 // Reference imports to suppress errors if they are not otherwise used.
 
 var exampleMessagesRequiredValidation = map[string]map[string]options.FilteringOption{
 	"User": {
-		"first_name":  options.FilteringOption{Deny: []string{"LT", "LE", "EQ", "GT", "GE"}},
-		"weight":      options.FilteringOption{Deny: []string{"LE"}},
-		"on_vacation": options.FilteringOption{DisableSorting: true},
-		"speciality":  options.FilteringOption{DisableSorting: true, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}},
-		"comment":     options.FilteringOption{},
+		"first_name":         options.FilteringOption{Deny: []string{"EQ", "GT", "GE", "LT", "LE"}, FilterType: "STRING"},
+		"weight":             options.FilteringOption{Deny: []string{"LE"}, FilterType: "NUMBER"},
+		"speciality":         options.FilteringOption{DisableSorting: true, Deny: []string{"EQ", "GT", "GE", "LT", "LE"}, FilterType: "STRING"},
+		"comment":            options.FilteringOption{FilterType: "STRING"},
+		"last_name":          options.FilteringOption{FilterType: "STRING"},
+		"id":                 options.FilteringOption{Deny: []string{"ALL"}, FilterType: "STRING"},
+		"custom_type_string": options.FilteringOption{FilterType: "STRING"},
 	},
-	"ListRequest": {
-		"filter":   options.FilteringOption{},
-		"order_by": options.FilteringOption{},
-		"fields":   options.FilteringOption{},
-		"paging":   options.FilteringOption{},
-	},
-	"ReadRequest": {
-		"order_by": options.FilteringOption{},
-		"fields":   options.FilteringOption{},
-		"paging":   options.FilteringOption{},
-	},
-	"UserResponse": {
-		"data": options.FilteringOption{},
-	},
+	"CustomType":   {},
+	"ListRequest":  {},
+	"ReadRequest":  {},
+	"UserResponse": {},
 }
 var exampleMethodsRequiredFilteringValidation = map[string]string{
 	"/example.TestService/List": "User",

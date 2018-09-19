@@ -14,6 +14,7 @@ type FilteringOptions struct {
 
 type FilteringOption struct {
 	DisableSorting bool
+	FilterType     string
 	Deny           []string
 }
 
@@ -37,15 +38,24 @@ func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[
 
 		switch x := f.(type) {
 		case *query.StringCondition:
+			if permData.FilterType != "STRING" {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, permData.FilterType)
+			}
 			sc := &query.Filtering_StringCondition{x}
 			tp = query.StringCondition_Type_name[int32(sc.StringCondition.Type)]
 		case *query.NumberCondition:
+			if permData.FilterType != "NUMBER" {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, permData.FilterType)
+			}
 			nc := &query.Filtering_NumberCondition{x}
 			tp = query.NumberCondition_Type_name[int32(nc.NumberCondition.Type)]
 		default:
 			return nil
 		}
 		for _, val := range permData.Deny {
+			if val == "ALL" {
+				return fmt.Errorf("Operation %s is not allowed for '%s'", tp, fieldTag)
+			}
 			if val == tp {
 				return fmt.Errorf("Operation %s is not allowed for '%s'", tp, fieldTag)
 			}
