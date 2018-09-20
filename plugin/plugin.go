@@ -152,155 +152,151 @@ func (p *PermPlugin) generateMessagePermissions(msg *generator.Descriptor) (bool
 		if msgField.GetTypeName() == sorting {
 			hasSortingField = true
 		}
-
-		permissionOpts := getFieldPermissionsOption(msgField)
-
-		msgFieldName := msgField.GetName()
-		denyOps, filterType, err := getDenyOperations(msgField)
-		if err != nil {
-			p.Fail(fmt.Sprintf(`Error for message '%s': %s`, msgTypeName, err.Error()))
-		}
-		if filterType == "" {
+	}
+	for fieldName, option := range p.getDenyOperations(msg) {
+		if option.FilterType == "DEFAULT" {
 			continue
 		}
 		var s string
-		if permissionOpts.GetDisableSorting() {
+		if option.DisableSorting {
 			s = `DisableSorting: true,`
 		}
 		var f string
-		if len(denyOps) != 0 {
-			f = `Deny: []string{"` + strings.Join(denyOps, `","`) + `"},`
+		if len(option.Deny) != 0 {
+			f = `Deny: []string{"` + strings.Join(option.Deny, `","`) + `"},`
 		}
-		t := fmt.Sprintf(`FilterType: "%s"`, filterType)
-		p.P(`"`, msgFieldName, `": options.FilteringOption{`+s+f+t+`},`)
+		t := fmt.Sprintf(`FilterType: "%s"`, option.FilterType)
+		p.P(`"`, fieldName, `": options.FilteringOption{`+s+f+t+`},`)
 	}
 	p.P(`},`)
 	return hasFilteringField, hasSortingField
 }
 
-func getFieldPermissionsOption(field *descriptor.FieldDescriptorProto) *options.CollectionPermissions {
-	if field.Options == nil {
-		return nil
-	}
-	v, err := proto.GetExtension(field.Options, options.E_Permissions)
-	if err != nil {
-		return nil
-	}
-	opts, ok := v.(*options.CollectionPermissions)
-	if !ok {
-		return nil
-	}
-	return opts
-}
-
 // getDenyOperations - returns list of denied operations and filter type or error
-func getDenyOperations(field *descriptor.FieldDescriptorProto) ([]string, string, error) {
-	res := []string{}
+func (p *PermPlugin) getDenyOperations(msg *generator.Descriptor) map[string]options.FilteringOption {
 
-	permissionOpts := getFieldPermissionsOption(field)
-	fieldName := field.GetName()
+	data := make(map[string]options.FilteringOption)
 
-	f := permissionOpts.GetFilters()
-	opsAllowed := f.GetAllow()
-	opsDenied := f.GetDeny()
+	for _, field := range msg.GetField() {
+		res := []string{}
 
-	filterType := permissionOpts.GetFilterType()
+		permissionOpts := getFieldPermissionsOption(field)
+		fieldName := field.GetName()
 
-	if filterType == options.CollectionPermissions_DEFAULT {
-		if field.IsRepeated() {
-			return nil, "", nil
-		}
-		switch field.GetType() {
-		case descriptor.FieldDescriptorProto_TYPE_STRING:
-			filterType = options.CollectionPermissions_STRING
-		case descriptor.FieldDescriptorProto_TYPE_ENUM:
-			filterType = options.CollectionPermissions_STRING
-		case descriptor.FieldDescriptorProto_TYPE_DOUBLE,
-			descriptor.FieldDescriptorProto_TYPE_FLOAT,
-			descriptor.FieldDescriptorProto_TYPE_INT32,
-			descriptor.FieldDescriptorProto_TYPE_INT64,
-			descriptor.FieldDescriptorProto_TYPE_SINT32,
-			descriptor.FieldDescriptorProto_TYPE_SINT64,
-			descriptor.FieldDescriptorProto_TYPE_UINT32,
-			descriptor.FieldDescriptorProto_TYPE_UINT64:
-			filterType = options.CollectionPermissions_NUMBER
-		case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
-			switch field.GetTypeName() {
-			case protoTypeResource,
-				protoTypeTimestamp,
-				protoTypeUUID,
-				protoTypeUUIDValue,
-				protoTypeInet,
-				protoTypeStringValue:
-				filterType = options.CollectionPermissions_STRING
-			case protoTypeDoubleValue,
-				protoTypeFloatValue,
-				protoTypeInt32Value,
-				protoTypeInt64Value,
-				protoTypeUInt32Value,
-				protoTypeUInt64Value:
-				filterType = options.CollectionPermissions_NUMBER
-			default:
-				return nil, "", nil
+		f := permissionOpts.GetFilters()
+		opsAllowed := f.GetAllow()
+		opsDenied := f.GetDeny()
+
+		filterType := permissionOpts.GetFilterType()
+		disableSorting := permissionOpts.GetDisableSorting()
+
+		if filterType == options.CollectionPermissions_DEFAULT {
+			if field.IsRepeated() {
+				continue
 			}
-		default:
-			return nil, "", nil
-		}
-	}
+			switch field.GetType() {
+			case descriptor.FieldDescriptorProto_TYPE_STRING:
+				filterType = options.CollectionPermissions_STRING
+			case descriptor.FieldDescriptorProto_TYPE_ENUM:
+				filterType = options.CollectionPermissions_STRING
+			case descriptor.FieldDescriptorProto_TYPE_DOUBLE,
+				descriptor.FieldDescriptorProto_TYPE_FLOAT,
+				descriptor.FieldDescriptorProto_TYPE_INT32,
+				descriptor.FieldDescriptorProto_TYPE_INT64,
+				descriptor.FieldDescriptorProto_TYPE_SINT32,
+				descriptor.FieldDescriptorProto_TYPE_SINT64,
+				descriptor.FieldDescriptorProto_TYPE_UINT32,
+				descriptor.FieldDescriptorProto_TYPE_UINT64:
+				filterType = options.CollectionPermissions_NUMBER
+			case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
+				switch field.GetTypeName() {
+				case protoTypeResource,
+					protoTypeTimestamp,
+					protoTypeUUID,
+					protoTypeUUIDValue,
+					protoTypeInet,
+					protoTypeStringValue:
+					filterType = options.CollectionPermissions_STRING
+				case protoTypeDoubleValue,
+					protoTypeFloatValue,
+					protoTypeInt32Value,
+					protoTypeInt64Value,
+					protoTypeUInt32Value,
+					protoTypeUInt64Value:
+					filterType = options.CollectionPermissions_NUMBER
+				default:
+					if permissionOpts.GetEnableNestedFields() {
+						nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
+						nestedDeny := p.getDenyOperations(nestedMsg)
+						for k, v := range nestedDeny {
+							data[fieldName+"."+k] = v
+						}
+						continue
+					}
 
-	if len(opsAllowed) == 0 && len(opsDenied) == 0 {
-		return nil, filterType.String(), nil
-	}
-
-	var supportedOps map[string]int32
-	if filterType == options.CollectionPermissions_NUMBER {
-		supportedOps = query.NumberCondition_Type_value
-	} else if filterType == options.CollectionPermissions_STRING {
-		supportedOps = query.StringCondition_Type_value
-	}
-
-	ops := opsAllowed
-	if len(opsDenied) > 0 {
-		ops = opsDenied
-	}
-
-	vals := strings.Split(ops, ",")
-	for _, item := range vals {
-		item := strings.TrimSpace(item)
-		_, ok := supportedOps[item]
-		if !ok && item != "ALL" {
-			return nil, "", fmt.Errorf("'%s' is unknown permission operation for field '%s'", item, fieldName)
-		}
-	}
-
-	if ops == opsAllowed {
-	OUTER:
-		for op := range supportedOps {
-			found := false
-			for _, allowedOp := range vals {
-				if allowedOp == "ALL" {
-					res = nil
-					break OUTER
 				}
-				if op == allowedOp {
-					found = true
+			default:
+				continue
+			}
+		}
+
+		if len(opsAllowed) == 0 && len(opsDenied) == 0 {
+			data[fieldName] = options.FilteringOption{FilterType: filterType.String(), DisableSorting: disableSorting}
+			continue
+		}
+
+		var supportedOps map[string]int32
+		if filterType == options.CollectionPermissions_NUMBER {
+			supportedOps = query.NumberCondition_Type_value
+		} else if filterType == options.CollectionPermissions_STRING {
+			supportedOps = query.StringCondition_Type_value
+		}
+
+		ops := opsAllowed
+		if len(opsDenied) > 0 {
+			ops = opsDenied
+		}
+
+		vals := strings.Split(ops, ",")
+		for _, item := range vals {
+			item := strings.TrimSpace(item)
+			_, ok := supportedOps[item]
+			if !ok && item != "ALL" {
+				p.Fail(fmt.Sprintf("'%s' is unknown permission operation for field '%s'", item, fieldName))
+			}
+		}
+
+		if ops == opsAllowed {
+		OUTER:
+			for op := range supportedOps {
+				found := false
+				for _, allowedOp := range vals {
+					if allowedOp == "ALL" {
+						res = nil
+						break OUTER
+					}
+					if op == allowedOp {
+						found = true
+						break
+					}
+				}
+				if !found {
+					res = append(res, op)
+				}
+			}
+		} else {
+			res = vals
+			for _, op := range vals {
+				if op == "ALL" {
+					res = []string{"ALL"}
 					break
 				}
 			}
-			if !found {
-				res = append(res, op)
-			}
 		}
-	} else {
-		res = vals
-		for _, op := range vals {
-			if op == "ALL" {
-				res = []string{"ALL"}
-				break
-			}
-		}
+		data[fieldName] = options.FilteringOption{FilterType: filterType.String(), DisableSorting: disableSorting, Deny: res}
+		continue
 	}
-	return res, filterType.String(), nil
+	return data
 }
 
 func (p *PermPlugin) genValidationFunc() {
@@ -319,6 +315,21 @@ func (p *PermPlugin) genValidationFunc() {
 	p.P(`if res != nil { return res}`)
 	p.P(`return nil`)
 	p.P(`}`)
+}
+
+func getFieldPermissionsOption(field *descriptor.FieldDescriptorProto) *options.CollectionPermissions {
+	if field.Options == nil {
+		return nil
+	}
+	v, err := proto.GetExtension(field.Options, options.E_Permissions)
+	if err != nil {
+		return nil
+	}
+	opts, ok := v.(*options.CollectionPermissions)
+	if !ok {
+		return nil
+	}
+	return opts
 }
 
 func (p *PermPlugin) CleanFiles(response *plugin.CodeGeneratorResponse) {

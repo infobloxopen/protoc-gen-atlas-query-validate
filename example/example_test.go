@@ -27,6 +27,10 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		{`array=="array"`, true},
 		{`custom_type=="custom_type"`, true},
 		{`custom_type_string~"custom_type"`, false},
+		{`home_address.city=="city"`, false},
+		{`home_address.city~"city"`, true},
+		{`home_address.country~"country"`, false},
+		{`work_address.city=="city"`, true},
 	}
 
 	for _, test := range tests {
@@ -57,6 +61,12 @@ func TestSortingPermissionsValidation(t *testing.T) {
 		{`on_vacation`, true},
 		{`speciality`, true},
 		{`unknown_field`, true},
+		{`array`, true},
+		{`custom_type`, true},
+		{`custom_type_string`, false},
+		{`home_address.city`, true},
+		{`home_address.country`, false},
+		{`work_address.city`, true},
 	}
 
 	for _, test := range tests {
