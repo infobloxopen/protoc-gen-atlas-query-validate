@@ -14,22 +14,19 @@ type FilteringOptions struct {
 
 type FilteringOption struct {
 	DisableSorting bool
-	FilterType     string
-	Deny           []string
+	FilterType     QueryValidate_FilterType
+	Deny           []QueryValidate_FilterOperator
 }
 
-func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[string]map[string]FilteringOption) error {
+func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOption) error {
 	var getOperator func(interface{}) error
-	var permData FilteringOption
+	var fieldInfo FilteringOption
 
 	validate := func(path []string, f interface{}) error {
 
-		objPerms, ok := perms[objName]
-		if !ok {
-			return nil
-		}
+		var ok bool
 		fieldTag := strings.Join(path, ".")
-		permData, ok = objPerms[fieldTag]
+		fieldInfo, ok = messageInfo[fieldTag]
 		if !ok {
 			return fmt.Errorf("Unknown field: %s", fieldTag)
 		}
@@ -38,25 +35,25 @@ func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[
 
 		switch x := f.(type) {
 		case *query.StringCondition:
-			if permData.FilterType != "STRING" {
-				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, permData.FilterType)
+			if fieldInfo.FilterType != QueryValidate_STRING {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.FilterType)
 			}
 			sc := &query.Filtering_StringCondition{x}
 			tp = query.StringCondition_Type_name[int32(sc.StringCondition.Type)]
 		case *query.NumberCondition:
-			if permData.FilterType != "NUMBER" {
-				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, permData.FilterType)
+			if fieldInfo.FilterType != QueryValidate_NUMBER {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.FilterType)
 			}
 			nc := &query.Filtering_NumberCondition{x}
 			tp = query.NumberCondition_Type_name[int32(nc.NumberCondition.Type)]
 		default:
 			return nil
 		}
-		for _, val := range permData.Deny {
-			if val == "ALL" {
+		for _, val := range fieldInfo.Deny {
+			if val == QueryValidate_ALL {
 				return fmt.Errorf("Operation %s is not allowed for '%s'", tp, fieldTag)
 			}
-			if val == tp {
+			if val.String() == tp {
 				return fmt.Errorf("Operation %s is not allowed for '%s'", tp, fieldTag)
 			}
 		}
@@ -124,23 +121,20 @@ func ValidateFilteringPermissions(f *query.Filtering, objName string, perms map[
 	return vres
 }
 
-func ValidateSortingPermissions(p *query.Sorting, objName string, perms map[string]map[string]FilteringOption) error {
+func ValidateSorting(p *query.Sorting, messageInfo map[string]FilteringOption) error {
 	var res error
-	var permData FilteringOption
+	var fieldInfo FilteringOption
 
 	if p != nil {
 		for _, criteria := range p.GetCriterias() {
 			tag := criteria.GetTag()
-			objPerms, ok := perms[objName]
-			if !ok {
-				return nil
-			}
-			permData, ok = objPerms[tag]
+			var ok bool
+			fieldInfo, ok = messageInfo[tag]
 			if !ok {
 				return fmt.Errorf("Unknown field: %s", tag)
 			}
 
-			if permData.DisableSorting {
+			if fieldInfo.DisableSorting {
 				res = fmt.Errorf("Sorting is not allowed for '%s'", tag)
 				break
 			}

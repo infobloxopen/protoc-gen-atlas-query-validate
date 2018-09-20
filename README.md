@@ -1,1 +1,1 @@
-# protoc-gen-atlas-query-perm
+# protoc-gen-atlas-query-validate

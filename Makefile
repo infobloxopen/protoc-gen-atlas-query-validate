@@ -8,16 +8,15 @@ default: options install
 options:
 	protoc -I. -I$(SRCPATH) -I./vendor  \
 		--gogo_out="Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor:$(SRCPATH)" \
-		options/collection_permissions.proto
+		options/query_validate.proto
 
 .PHONY: install
 install:
 	go install
 
-.PHONY: perm-test
-perm-test: ./example/* ./test/*
+test: ./example/*
 	echo ${SRCPATH}
-	protoc -I. -I${SRCPATH} -I./vendor -I./vendor/github.com/grpc-ecosystem/grpc-gateway --atlas-query-perm_out=. example/example.proto
+	protoc -I. -I${SRCPATH} -I./vendor -I./vendor/github.com/grpc-ecosystem/grpc-gateway --atlas-query-validate_out=. example/example.proto
 	go test  ./...
 	
 .PHONY: vendor

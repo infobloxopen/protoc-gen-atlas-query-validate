@@ -1,0 +1,33 @@
+syntax = "proto2";
+package atlas.query;
+
+option go_package = "github.com/infobloxopen/protoc-gen-atlas-query-validate/options;options";
+
+import "google/protobuf/descriptor.proto";
+
+// Field level specifications
+extend google.protobuf.FieldOptions {
+  optional QueryValidate validate = 52121;
+}
+
+message QueryValidate {
+  optional bool disable_sorting = 1;
+  enum FilterOperator {
+    EQ = 0;
+    MATCH = 1;
+    GT = 2;
+    GE = 3;
+    LT = 4;
+    LE = 5;
+    ALL = 6;
+  }
+  repeated FilterOperator allow = 2;
+  repeated FilterOperator deny = 3;
+  enum FilterType {
+    DEFAULT = 0;
+    STRING = 1;
+    NUMBER = 2;
+  }
+  optional FilterType filter_type  = 4;
+  optional bool enable_nested_fields = 5;
+}
