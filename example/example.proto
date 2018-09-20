@@ -2,6 +2,7 @@
 syntax = "proto3";
 package example;
 
+import "google/protobuf/wrappers.proto";
 import "github.com/infobloxopen/protoc-gen-atlas-query-perm/options/collection_permissions.proto";
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
@@ -11,6 +12,14 @@ message User {
     bool on_vacation = 3 [(atlas.query.permissions).disable_sorting = true];
     string speciality = 4 [(atlas.query.permissions) = {filters: {allow: "MATCH"}, disable_sorting: true}];
     string comment = 5;
+    google.protobuf.StringValue last_name = 6;
+    string id = 7 [(atlas.query.permissions) = {filters: {deny: "ALL"}}];
+    repeated string array = 8;
+    CustomType custom_type = 9;
+    CustomType custom_type_string = 10 [(atlas.query.permissions) = {filter_type: STRING}];
+}
+
+message CustomType {
 }
 
 
