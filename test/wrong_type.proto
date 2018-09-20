@@ -1,8 +1,0 @@
-syntax = "proto3";
-package tst;
-
-import "github.com/infobloxopen/protoc-gen-atlas-query-perm/options/collection_permissions.proto";
-
-message User {
-    bool OnVacation = 17  [(atlas.query.permissions).filters.deny = "LE"];
-}
