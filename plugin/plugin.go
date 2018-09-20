@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	filtering             = ".infoblox.api.Filtering"
-	sorting               = ".infoblox.api.Sorting"
-	permissionSuffix      = "MessagesRequiredValidation"
-	methodFilteringSuffix = "MethodsRequiredFilteringValidation"
-	methodSortingSuffix   = "MethodsRequiredSortingValidation"
+	filtering                 = ".infoblox.api.Filtering"
+	sorting                   = ".infoblox.api.Sorting"
+	permissionSuffix          = "MessagesRequireQueryValidation"
+	methodFilteringSuffix     = "MethodsRequireFilteringValidation"
+	methodSortingSuffix       = "MethodsRequireSortingValidation"
+	validateQueryMethodSuffix = "ValidateQuery"
 
 	protoTypeTimestamp   = ".google.protobuf.Timestamp"
 	protoTypeUUID        = ".gorm.types.UUID"
@@ -42,6 +43,7 @@ type PermPlugin struct {
 	messagePermissionsData                 string
 	requiredFilteringValidationMethodsData string
 	requiredSortingValidationMethodsData   string
+	validateQueryMethodName                string
 }
 
 func (p *PermPlugin) setFile(file *generator.FileDescriptor) {
@@ -49,10 +51,10 @@ func (p *PermPlugin) setFile(file *generator.FileDescriptor) {
 	// p.Generator.SetFile(file.FileDescriptorProto)
 
 	baseFileName := filepath.Base(file.GetName())
-	p.messagePermissionsData = strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + permissionSuffix
-	p.requiredFilteringValidationMethodsData = strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodFilteringSuffix
-	p.requiredSortingValidationMethodsData = strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodSortingSuffix
-
+	p.messagePermissionsData = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + permissionSuffix)
+	p.requiredFilteringValidationMethodsData = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodFilteringSuffix)
+	p.requiredSortingValidationMethodsData = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodSortingSuffix)
+	p.validateQueryMethodName = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + validateQueryMethodSuffix)
 }
 
 // Name identifies the plugin
@@ -75,8 +77,7 @@ func (p *PermPlugin) Generate(file *generator.FileDescriptor) {
 }
 
 func (p *PermPlugin) genValidationData() {
-	messagesByName := map[string]*generator.Descriptor{}
-	msgRequireValidations := map[string]struct{}{}
+	msgByName := map[string]*generator.Descriptor{}
 	msgWithFilteringField := map[string]struct{}{}
 	msgWithSortingField := map[string]struct{}{}
 
@@ -86,12 +87,10 @@ func (p *PermPlugin) genValidationData() {
 	p.P(`var `, p.messagePermissionsData, ` = map[string]map[string]options.FilteringOption{`)
 	for _, msg := range p.currentFile.Messages() {
 		fullMsgName := fmt.Sprintf(".%s.%s", *packageName, generator.CamelCaseSlice(msg.TypeName()))
-		messagesByName[fullMsgName] = msg
+		msgByName[fullMsgName] = msg
+		p.generateMessagePermissions(msg)
 
-		hasFiltering, hasSorting := p.generateMessagePermissions(msg)
-
-		msgRequireValidations[fullMsgName] = struct{}{}
-
+		hasFiltering, hasSorting := p.checkCollectionOperators(msg)
 		if hasFiltering {
 			msgWithFilteringField[fullMsgName] = struct{}{}
 		}
@@ -113,11 +112,11 @@ func (p *PermPlugin) genValidationData() {
 			for _, method := range srv.GetMethod() {
 
 				_, hasFilteringSorting := reqValidation[method.GetInputType()]
-				msg, ok := messagesByName[method.GetOutputType()]
+				msg, ok := msgByName[method.GetOutputType()]
 				if !ok {
 					continue
 				}
-				msgFieldType := p.hasRequiredValidationField(msg, msgRequireValidations)
+				msgFieldType := p.hasRequiredValidationField(msg, msgByName)
 				if hasFilteringSorting && len(msgFieldType) > 0 {
 					p.P(`"`, fmt.Sprintf("/%s.%s/%s", *packageName, srv.GetName(), method.GetName()), `": "`, strings.TrimLeft(msgFieldType, "."+*packageName), `",`)
 				}
@@ -128,32 +127,32 @@ func (p *PermPlugin) genValidationData() {
 
 }
 
-func (p *PermPlugin) hasRequiredValidationField(msg *generator.Descriptor, requireValidations map[string]struct{}) string {
+func (p *PermPlugin) hasRequiredValidationField(msg *generator.Descriptor, allMsgs map[string]*generator.Descriptor) string {
 	for _, msgField := range msg.GetField() {
-		if _, ok := requireValidations[msgField.GetTypeName()]; ok {
+		if _, ok := allMsgs[msgField.GetTypeName()]; ok {
 			return msgField.GetTypeName()
 		}
 	}
 	return ""
 }
 
-func (p *PermPlugin) generateMessagePermissions(msg *generator.Descriptor) (bool, bool) {
-	msgTypeName := generator.CamelCaseSlice(msg.TypeName())
-	hasFilteringField := false
-	hasSortingField := false
-
-	p.P(`"`, msgTypeName, `": {`)
+func (p *PermPlugin) checkCollectionOperators(msg *generator.Descriptor) (bool, bool) {
+	var hasFilteringField, hasSortingField bool
 	for _, msgField := range msg.GetField() {
-
 		if msgField.GetTypeName() == filtering {
 			hasFilteringField = true
 		}
-
 		if msgField.GetTypeName() == sorting {
 			hasSortingField = true
 		}
 	}
-	for fieldName, option := range p.getDenyOperations(msg) {
+	return hasFilteringField, hasSortingField
+}
+
+func (p *PermPlugin) generateMessagePermissions(msg *generator.Descriptor) {
+	msgTypeName := generator.CamelCaseSlice(msg.TypeName())
+	p.P(`"`, msgTypeName, `": {`)
+	for fieldName, option := range p.getValidationData(msg) {
 		if option.FilterType == "DEFAULT" {
 			continue
 		}
@@ -169,27 +168,16 @@ func (p *PermPlugin) generateMessagePermissions(msg *generator.Descriptor) (bool
 		p.P(`"`, fieldName, `": options.FilteringOption{`+s+f+t+`},`)
 	}
 	p.P(`},`)
-	return hasFilteringField, hasSortingField
 }
 
-// getDenyOperations - returns list of denied operations and filter type or error
-func (p *PermPlugin) getDenyOperations(msg *generator.Descriptor) map[string]options.FilteringOption {
-
+// getValidationData - returns list of denied operations and filter type or error
+func (p *PermPlugin) getValidationData(msg *generator.Descriptor) map[string]options.FilteringOption {
 	data := make(map[string]options.FilteringOption)
-
 	for _, field := range msg.GetField() {
-		res := []string{}
-
 		permissionOpts := getFieldPermissionsOption(field)
 		fieldName := field.GetName()
-
-		f := permissionOpts.GetFilters()
-		opsAllowed := f.GetAllow()
-		opsDenied := f.GetDeny()
-
 		filterType := permissionOpts.GetFilterType()
 		disableSorting := permissionOpts.GetDisableSorting()
-
 		if filterType == options.CollectionPermissions_DEFAULT {
 			if field.IsRepeated() {
 				continue
@@ -227,7 +215,7 @@ func (p *PermPlugin) getDenyOperations(msg *generator.Descriptor) map[string]opt
 				default:
 					if permissionOpts.GetEnableNestedFields() {
 						nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
-						nestedDeny := p.getDenyOperations(nestedMsg)
+						nestedDeny := p.getValidationData(nestedMsg)
 						for k, v := range nestedDeny {
 							data[fieldName+"."+k] = v
 						}
@@ -239,68 +227,76 @@ func (p *PermPlugin) getDenyOperations(msg *generator.Descriptor) map[string]opt
 				continue
 			}
 		}
-
-		if len(opsAllowed) == 0 && len(opsDenied) == 0 {
-			data[fieldName] = options.FilteringOption{FilterType: filterType.String(), DisableSorting: disableSorting}
-			continue
-		}
-
-		var supportedOps map[string]int32
-		if filterType == options.CollectionPermissions_NUMBER {
-			supportedOps = query.NumberCondition_Type_value
-		} else if filterType == options.CollectionPermissions_STRING {
-			supportedOps = query.StringCondition_Type_value
-		}
-
-		ops := opsAllowed
-		if len(opsDenied) > 0 {
-			ops = opsDenied
-		}
-
-		vals := strings.Split(ops, ",")
-		for _, item := range vals {
-			item := strings.TrimSpace(item)
-			_, ok := supportedOps[item]
-			if !ok && item != "ALL" {
-				p.Fail(fmt.Sprintf("'%s' is unknown permission operation for field '%s'", item, fieldName))
-			}
-		}
-
-		if ops == opsAllowed {
-		OUTER:
-			for op := range supportedOps {
-				found := false
-				for _, allowedOp := range vals {
-					if allowedOp == "ALL" {
-						res = nil
-						break OUTER
-					}
-					if op == allowedOp {
-						found = true
-						break
-					}
-				}
-				if !found {
-					res = append(res, op)
-				}
-			}
-		} else {
-			res = vals
-			for _, op := range vals {
-				if op == "ALL" {
-					res = []string{"ALL"}
-					break
-				}
-			}
-		}
-		data[fieldName] = options.FilteringOption{FilterType: filterType.String(), DisableSorting: disableSorting, Deny: res}
-		continue
+		data[fieldName] = options.FilteringOption{FilterType: filterType.String(), DisableSorting: disableSorting, Deny: p.getDenyRules(field, filterType)}
 	}
 	return data
 }
 
+func (p *PermPlugin) getDenyRules(field *descriptor.FieldDescriptorProto, filterType options.CollectionPermissions_FilterType) []string {
+	permissionOpts := getFieldPermissionsOption(field)
+	fieldName := field.GetName()
+	f := permissionOpts.GetFilters()
+	opsAllowed := f.GetAllow()
+	opsDenied := f.GetDeny()
+
+	if len(opsAllowed) == 0 && len(opsDenied) == 0 {
+		return nil
+	}
+
+	var supportedOps map[string]int32
+	if filterType == options.CollectionPermissions_NUMBER {
+		supportedOps = query.NumberCondition_Type_value
+	} else if filterType == options.CollectionPermissions_STRING {
+		supportedOps = query.StringCondition_Type_value
+	}
+
+	ops := opsAllowed
+	if len(opsDenied) > 0 {
+		ops = opsDenied
+	}
+
+	vals := strings.Split(ops, ",")
+	for _, item := range vals {
+		item := strings.TrimSpace(item)
+		_, ok := supportedOps[item]
+		if !ok && item != "ALL" {
+			p.Fail(fmt.Sprintf("'%s' is unknown permission operation for field '%s'", item, fieldName))
+		}
+	}
+
+	var res []string
+	if ops == opsAllowed {
+	OUTER:
+		for op := range supportedOps {
+			found := false
+			for _, allowedOp := range vals {
+				if allowedOp == "ALL" {
+					res = nil
+					break OUTER
+				}
+				if op == allowedOp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				res = append(res, op)
+			}
+		}
+	} else {
+		res = vals
+		for _, op := range vals {
+			if op == "ALL" {
+				res = []string{"ALL"}
+				break
+			}
+		}
+	}
+	return res
+}
+
 func (p *PermPlugin) genValidationFunc() {
-	p.P(`func Validate(f *query.Filtering, p *query.Sorting, methodName string) error {`)
+	p.P(`func `, p.validateQueryMethodName, `(f *query.Filtering, p *query.Sorting, methodName string) error {`)
 	p.P(`perm, ok := `, p.requiredFilteringValidationMethodsData, `[methodName]`)
 	p.P(`if !ok {`)
 	p.P(`return nil`)

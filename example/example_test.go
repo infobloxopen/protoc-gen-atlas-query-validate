@@ -38,7 +38,7 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid filtering data '%s'", test.Query)
 		}
-		err = Validate(f, nil, "/example.TestService/List")
+		err = ExampleValidateQuery(f, nil, "/example.TestService/List")
 		if err != nil {
 			if test.Err == false {
 				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
@@ -74,7 +74,7 @@ func TestSortingPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid sorting data '%s'", test.Query)
 		}
-		err = Validate(nil, s, "/example.TestService/List")
+		err = ExampleValidateQuery(nil, s, "/example.TestService/List")
 		if err != nil {
 			if test.Err == false {
 				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
