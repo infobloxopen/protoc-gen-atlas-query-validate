@@ -95,12 +95,17 @@ func (p *QueryValidatePlugin) genValidationData() {
 	}
 	p.P(`}`)
 
-	data := map[string]map[string]struct{}{
-		p.requiredFilteringValidationVarName: msgWithFilteringField,
-		p.requiredSortingValidationVarName:   msgWithSortingField,
+	data := []struct {
+		varName string
+		msgs    map[string]struct{}
+	}{
+		{p.requiredFilteringValidationVarName, msgWithFilteringField},
+		{p.requiredSortingValidationVarName, msgWithSortingField},
 	}
 
-	for prefix, reqValidation := range data {
+	for _, v := range data {
+		prefix := v.varName
+		reqValidation := v.msgs
 		// generate methods required validation data
 		p.P(`var `, prefix, ` = map[string]string{`)
 		for _, srv := range p.currentFile.GetService() {
@@ -147,30 +152,35 @@ func (p *QueryValidatePlugin) checkCollectionOperators(msg *generator.Descriptor
 func (p *QueryValidatePlugin) generateMessageValidationInfo(msg *generator.Descriptor) {
 	msgTypeName := generator.CamelCaseSlice(msg.TypeName())
 	p.P(`"`, msgTypeName, `": {`)
-	for fieldName, option := range p.getValidationData(msg) {
-		if option.FilterType == options.QueryValidate_DEFAULT {
+	for _, v := range p.getValidationData(msg) {
+		if v.option.FilterType == options.QueryValidate_DEFAULT {
 			continue
 		}
 		var s string
-		if option.DisableSorting {
+		if v.option.DisableSorting {
 			s = `DisableSorting: true,`
 		}
 		var f string
-		if len(option.Deny) != 0 {
-			for _, d := range option.Deny {
+		if len(v.option.Deny) != 0 {
+			for _, d := range v.option.Deny {
 				f += "options.QueryValidate_" + d.String() + `,`
 			}
 			f = `Deny: []options.QueryValidate_FilterOperator{` + f + `},`
 		}
-		t := `FilterType: options.QueryValidate_` + option.FilterType.String()
-		p.P(`"`, fieldName, `": options.FilteringOption{`+s+f+t+`},`)
+		t := `FilterType: options.QueryValidate_` + v.option.FilterType.String()
+		p.P(`"`, v.fieldName, `": options.FilteringOption{`+s+f+t+`},`)
 	}
 	p.P(`},`)
 }
 
-// getValidationData - returns list of denied operations and filter type or error
-func (p *QueryValidatePlugin) getValidationData(msg *generator.Descriptor) map[string]options.FilteringOption {
-	data := make(map[string]options.FilteringOption)
+type fieldValidate struct {
+	fieldName string
+	option    options.FilteringOption
+}
+
+// getValidationData - returns list of validation data per field
+func (p *QueryValidatePlugin) getValidationData(msg *generator.Descriptor) []fieldValidate {
+	var data []fieldValidate
 	for _, field := range msg.GetField() {
 		opts := getQueryValidationOptions(field)
 		fieldName := field.GetName()
@@ -214,8 +224,8 @@ func (p *QueryValidatePlugin) getValidationData(msg *generator.Descriptor) map[s
 					if opts.GetEnableNestedFields() {
 						nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
 						nestedDeny := p.getValidationData(nestedMsg)
-						for k, v := range nestedDeny {
-							data[fieldName+"."+k] = v
+						for _, v := range nestedDeny {
+							data = append(data, fieldValidate{fieldName + "." + v.fieldName, v.option})
 						}
 						continue
 					}
@@ -225,7 +235,7 @@ func (p *QueryValidatePlugin) getValidationData(msg *generator.Descriptor) map[s
 				continue
 			}
 		}
-		data[fieldName] = options.FilteringOption{FilterType: filterType, DisableSorting: disableSorting, Deny: p.getDenyRules(field, filterType)}
+		data = append(data, fieldValidate{fieldName, options.FilteringOption{FilterType: filterType, DisableSorting: disableSorting, Deny: p.getDenyRules(field, filterType)}})
 	}
 	return data
 }
@@ -235,6 +245,10 @@ func (p *QueryValidatePlugin) getDenyRules(field *descriptor.FieldDescriptorProt
 	fieldName := field.GetName()
 	opsAllowed := opts.GetAllow()
 	opsDenied := opts.GetDeny()
+
+	if len(opsAllowed) > 0 && len(opsDenied) > 0 {
+		p.Fail(fieldName, ": both allow and deny options are not allowed")
+	}
 
 	if len(opsAllowed) == 0 && len(opsDenied) == 0 {
 		return nil
@@ -274,7 +288,7 @@ func (p *QueryValidatePlugin) getDenyRules(field *descriptor.FieldDescriptorProt
 			}
 		}
 		if !found && item != options.QueryValidate_ALL {
-			p.Fail(fmt.Sprintf("'%s'filtering operator is not supported for field '%s'", item, fieldName))
+			p.Fail(fmt.Sprintf("'%s'filtering operator is not supported for fieldValidate '%s'", item, fieldName))
 		}
 	}
 
