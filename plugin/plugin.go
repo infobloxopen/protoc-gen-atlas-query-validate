@@ -23,7 +23,7 @@ const (
 	protoTypeTimestamp   = ".google.protobuf.Timestamp"
 	protoTypeUUID        = ".gorm.types.UUID"
 	protoTypeUUIDValue   = ".gorm.types.UUIDValue"
-	protoTypeResource    = ".gorm.types.Identifier"
+	protoTypeResource    = ".atlas.rpc.Identifier"
 	protoTypeInet        = ".gorm.types.InetValue"
 	protoTypeStringValue = ".google.protobuf.StringValue"
 	protoTypeDoubleValue = ".google.protobuf.DoubleValue"
