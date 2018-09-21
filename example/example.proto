@@ -3,21 +3,21 @@ syntax = "proto3";
 package example;
 
 import "google/protobuf/wrappers.proto";
-import "github.com/infobloxopen/protoc-gen-atlas-query-perm/options/collection_permissions.proto";
+import "github.com/infobloxopen/protoc-gen-atlas-query-validate/options/query_validate.proto";
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
 message User {
-    string first_name = 1 [(atlas.query.permissions).filters.allow = "MATCH"];
-    float weight = 2 [(atlas.query.permissions).filters.deny = "LE"];
-    bool on_vacation = 3 [(atlas.query.permissions).disable_sorting = true];
-    string speciality = 4 [(atlas.query.permissions) = {filters: {allow: "MATCH"}, disable_sorting: true}];
+    string first_name = 1 [(atlas.query.validate) = {allow: MATCH, allow: EQ}];
+    float weight = 2 [(atlas.query.validate).deny = LE];
+    bool on_vacation = 3 [(atlas.query.validate).disable_sorting = true];
+    string speciality = 4 [(atlas.query.validate) = {allow: MATCH, disable_sorting: true}];
     string comment = 5;
     google.protobuf.StringValue last_name = 6;
-    string id = 7 [(atlas.query.permissions) = {filters: {deny: "ALL"}}];
+    string id = 7 [(atlas.query.validate).deny = ALL];
     repeated string array = 8;
     CustomType custom_type = 9;
-    CustomType custom_type_string = 10 [(atlas.query.permissions) = {filter_type: STRING}];
-    Address home_address = 11 [(atlas.query.permissions) = {enable_nested_fields: true}];
+    CustomType custom_type_string = 10 [(atlas.query.validate) = {filter_type: STRING}];
+    Address home_address = 11 [(atlas.query.validate) = {enable_nested_fields: true}];
     Address work_address = 12;
 }
 
@@ -25,7 +25,7 @@ message CustomType {
 }
 
 message Address {
-    string city = 1 [(atlas.query.permissions) = {filters: {allow: "EQ"}, disable_sorting: true}];
+    string city = 1 [(atlas.query.validate) = {allow: EQ, disable_sorting: true}];
     string country = 2;
 }
 

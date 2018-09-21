@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/infobloxopen/atlas-app-toolkit/query"
+	"github.com/infobloxopen/protoc-gen-atlas-query-validate/options"
 )
 
 func TestFilteringPermissionsValidation(t *testing.T) {
@@ -12,15 +13,16 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		Err   bool
 	}{
 		{`first_name~"Sam"`, false},
+		{`first_name=="Sam"`, false},
 		{`weight==1`, false},
 		{`comment=="comment1"`, false},
 		{`speciality~"spec"`, false},
 		{`last_name=="Smith"`, false},
 		{`last_name~"Smith"`, false},
 		{`id=="some_id"`, true},
-		{`first_name=="Sam"`, true},
+		{`first_name<"Sam"`, true},
 		{`weight<=1`, true},
-		{`first_name=="Jan"`, true},
+		{`first_name<"Jan"`, true},
 		{`speciality=="spec"`, true},
 		{`unknown_field=="unk"`, true},
 		{`id=="some_id"`, true},
@@ -38,7 +40,7 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid filtering data '%s'", test.Query)
 		}
-		err = ExampleValidateQuery(f, nil, "/example.TestService/List")
+		err = options.ValidateFiltering(f, ExampleMessagesRequireQueryValidation["User"])
 		if err != nil {
 			if test.Err == false {
 				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
@@ -74,7 +76,7 @@ func TestSortingPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid sorting data '%s'", test.Query)
 		}
-		err = ExampleValidateQuery(nil, s, "/example.TestService/List")
+		err = options.ValidateSorting(s, ExampleMessagesRequireQueryValidation["User"])
 		if err != nil {
 			if test.Err == false {
 				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
