@@ -7,7 +7,7 @@ import (
 
 func main() {
 	plugin := &plugin.PermPlugin{}
-	response := command.GeneratePlugin(command.Read(), plugin, ".pb.perm.go")
+	response := command.GeneratePlugin(command.Read(), plugin, ".pb.atlas.query.perm.go")
 	plugin.CleanFiles(response)
 	command.Write(response)
 }

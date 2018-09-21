@@ -19,6 +19,7 @@ message CollectionPermissions {
     NUMBER = 2;
   }
   optional FilterType filter_type  = 3;
+  optional bool enable_nested_fields = 4;
 }
 
 message FilterOptions {

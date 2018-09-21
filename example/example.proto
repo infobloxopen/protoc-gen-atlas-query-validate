@@ -17,11 +17,17 @@ message User {
     repeated string array = 8;
     CustomType custom_type = 9;
     CustomType custom_type_string = 10 [(atlas.query.permissions) = {filter_type: STRING}];
+    Address home_address = 11 [(atlas.query.permissions) = {enable_nested_fields: true}];
+    Address work_address = 12;
 }
 
 message CustomType {
 }
 
+message Address {
+    string city = 1 [(atlas.query.permissions) = {filters: {allow: "EQ"}, disable_sorting: true}];
+    string country = 2;
+}
 
 message ListRequest {
     infoblox.api.Filtering filter = 1;
