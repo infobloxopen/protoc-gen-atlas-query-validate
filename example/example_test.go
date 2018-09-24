@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/infobloxopen/atlas-app-toolkit/query"
-	"github.com/infobloxopen/protoc-gen-atlas-query-validate/options"
 )
 
 func TestFilteringPermissionsValidation(t *testing.T) {
@@ -40,7 +39,7 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid filtering data '%s'", test.Query)
 		}
-		err = options.ValidateFiltering(f, ExampleMessagesRequireQueryValidation["User"])
+		err = ExampleValidateFiltering("/example.TestService/List", f)
 		if err != nil {
 			if test.Err == false {
 				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
@@ -76,7 +75,7 @@ func TestSortingPermissionsValidation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Invalid sorting data '%s'", test.Query)
 		}
-		err = options.ValidateSorting(s, ExampleMessagesRequireQueryValidation["User"])
+		err = ExampleValidateSorting("/example.TestService/List", s)
 		if err != nil {
 			if test.Err == false {
 				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
