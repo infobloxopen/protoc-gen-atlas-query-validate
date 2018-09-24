@@ -14,11 +14,13 @@ import (
 )
 
 const (
-	filtering                   = ".infoblox.api.Filtering"
-	sorting                     = ".infoblox.api.Sorting"
-	messagesValidationVarSuffix = "MessagesRequireQueryValidation"
-	methodFilteringVarSuffix    = "MethodsRequireFilteringValidation"
-	methodSortingVarSuffix      = "MethodsRequireSortingValidation"
+	filtering                     = ".infoblox.api.Filtering"
+	sorting                       = ".infoblox.api.Sorting"
+	messagesValidationVarSuffix   = "MessagesRequireQueryValidation"
+	methodFilteringVarSuffix      = "MethodsRequireFilteringValidation"
+	methodSortingVarSuffix        = "MethodsRequireSortingValidation"
+	validateFilteringMethodSuffix = "ValidateFiltering"
+	validateSortingMethodSuffix   = "ValidateSorting"
 
 	protoTypeTimestamp   = ".google.protobuf.Timestamp"
 	protoTypeUUID        = ".gorm.types.UUID"
@@ -41,6 +43,8 @@ type QueryValidatePlugin struct {
 	messagesValidationVarName          string
 	requiredFilteringValidationVarName string
 	requiredSortingValidationVarName   string
+	validateFilteringMethodName        string
+	validateSortingMethodName          string
 }
 
 func (p *QueryValidatePlugin) setFile(file *generator.FileDescriptor) {
@@ -51,6 +55,8 @@ func (p *QueryValidatePlugin) setFile(file *generator.FileDescriptor) {
 	p.messagesValidationVarName = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + messagesValidationVarSuffix)
 	p.requiredFilteringValidationVarName = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodFilteringVarSuffix)
 	p.requiredSortingValidationVarName = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + methodSortingVarSuffix)
+	p.validateFilteringMethodName = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + validateFilteringMethodSuffix)
+	p.validateSortingMethodName = generator.CamelCase(strings.TrimSuffix(baseFileName, filepath.Ext(baseFileName)) + validateSortingMethodSuffix)
 }
 
 // Name identifies the plugin
@@ -69,6 +75,8 @@ func (p *QueryValidatePlugin) Init(g *generator.Generator) {
 func (p *QueryValidatePlugin) Generate(file *generator.FileDescriptor) {
 	p.setFile(file)
 	p.genValidationData()
+	p.genValidateFiltering()
+	p.genValidateSorting()
 }
 
 func (p *QueryValidatePlugin) genValidationData() {
@@ -321,6 +329,36 @@ func (p *QueryValidatePlugin) getDenyRules(field *descriptor.FieldDescriptorProt
 		}
 	}
 	return res
+}
+
+func (p *QueryValidatePlugin) genValidateFiltering() {
+	p.P(`func `, p.validateFilteringMethodName, `(methodName string, f *query.Filtering) error {`)
+	p.P(`objName, ok := `, p.requiredFilteringValidationVarName, `[methodName]`)
+	p.P(`if !ok {`)
+	p.P(`return nil`)
+	p.P(`}`)
+	p.P(`var info map[string]options.FilteringOption`)
+	p.P(`info, ok = `, p.messagesValidationVarName, `[objName]`)
+	p.P(`if !ok {`)
+	p.P(`return nil`)
+	p.P(`}`)
+	p.P(`return options.ValidateFiltering(f, info)`)
+	p.P(`}`)
+}
+
+func (p *QueryValidatePlugin) genValidateSorting() {
+	p.P(`func `, p.validateSortingMethodName, `(methodName string, s *query.Sorting) error {`)
+	p.P(`objName, ok := `, p.requiredSortingValidationVarName, `[methodName]`)
+	p.P(`if !ok {`)
+	p.P(`return nil`)
+	p.P(`}`)
+	p.P(`var info map[string]options.FilteringOption`)
+	p.P(`info, ok = `, p.messagesValidationVarName, `[objName]`)
+	p.P(`if !ok {`)
+	p.P(`return nil`)
+	p.P(`}`)
+	p.P(`return options.ValidateSorting(s, info)`)
+	p.P(`}`)
 }
 
 func getQueryValidationOptions(field *descriptor.FieldDescriptorProto) *options.QueryValidate {

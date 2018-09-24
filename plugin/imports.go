@@ -41,4 +41,5 @@ func CleanImports(pFileText *string) *string {
 // GenerateImports writes out required imports for the generated files
 func (p *QueryValidatePlugin) GenerateImports(file *generator.FileDescriptor) {
 	p.PrintImport("options", "github.com/infobloxopen/protoc-gen-atlas-query-validate/options")
+	p.PrintImport("query", "github.com/infobloxopen/atlas-app-toolkit/query")
 }

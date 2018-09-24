@@ -3,7 +3,6 @@ SRCPATH := $(patsubst %/,%,$(GOPATH))/src
 
 default: options install
 
-
 .PHONY: options
 options:
 	protoc -I. -I$(SRCPATH) -I./vendor  \
@@ -14,9 +13,11 @@ options:
 install:
 	go install
 
-test: ./example/*
-	echo ${SRCPATH}
+.PHONY: example
+example: default
 	protoc -I. -I${SRCPATH} -I./vendor -I./vendor/github.com/grpc-ecosystem/grpc-gateway --atlas-query-validate_out=. example/example.proto
+
+test: example
 	go test  ./...
 	
 .PHONY: vendor
