@@ -7,16 +7,16 @@ import "github.com/infobloxopen/protoc-gen-atlas-query-validate/options/query_va
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
 message User {
-    string first_name = 1 [(atlas.query.validate) = {allow: MATCH, allow: EQ}];
-    float weight = 2 [(atlas.query.validate).deny = LE];
-    bool on_vacation = 3 [(atlas.query.validate).disable_sorting = true];
-    string speciality = 4 [(atlas.query.validate) = {allow: MATCH, disable_sorting: true}];
+    string first_name = 1 [(atlas.query.validate).filtering = {allow: MATCH, allow: EQ}];
+    float weight = 2 [(atlas.query.validate).filtering.deny = LE];
+    bool on_vacation = 3 [(atlas.query.validate).sorting.disable = true];
+    string speciality = 4 [(atlas.query.validate) = {filtering: {allow: MATCH}, sorting: {disable: true}}];
     string comment = 5;
     google.protobuf.StringValue last_name = 6;
-    string id = 7 [(atlas.query.validate).deny = ALL];
+    string id = 7 [(atlas.query.validate).filtering.deny = ALL];
     repeated string array = 8;
     CustomType custom_type = 9;
-    CustomType custom_type_string = 10 [(atlas.query.validate) = {filter_type: STRING}];
+    CustomType custom_type_string = 10 [(atlas.query.validate) = {value_type: STRING}];
     Address home_address = 11 [(atlas.query.validate) = {enable_nested_fields: true}];
     Address work_address = 12;
 }
@@ -25,7 +25,7 @@ message CustomType {
 }
 
 message Address {
-    string city = 1 [(atlas.query.validate) = {allow: EQ, disable_sorting: true}];
+    string city = 1 [(atlas.query.validate) = {filtering: {allow: EQ}, sorting: {disable: true}}];
     string country = 2;
 }
 
@@ -42,14 +42,18 @@ message ReadRequest {
     infoblox.api.Pagination paging = 3;
 }
 
-message UserResponse {
-    repeated User data = 1;
+message ListUserResponse {
+    repeated User results = 1;
+}
+
+message ReadUserResponse {
+    User result = 1;
 }
 
 service TestService {
-    rpc List (ListRequest) returns (UserResponse) {
+    rpc List (ListRequest) returns (ListUserResponse) {
     }
 
-    rpc Read (ReadRequest) returns (UserResponse) {
+    rpc Read (ReadRequest) returns (ReadUserResponse) {
     }
 }

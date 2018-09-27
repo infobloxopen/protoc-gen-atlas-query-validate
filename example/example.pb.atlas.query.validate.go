@@ -9,56 +9,96 @@ import _ "github.com/golang/protobuf/ptypes/wrappers"
 
 // Reference imports to suppress errors if they are not otherwise used.
 
-var ExampleMessagesRequireQueryValidation = map[string]map[string]options.FilteringOption{
-	"User": {
-		"first_name":           options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE}, FilterType: options.QueryValidate_STRING},
-		"weight":               options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_LE}, FilterType: options.QueryValidate_NUMBER},
-		"speciality":           options.FilteringOption{DisableSorting: true, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_EQ, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE}, FilterType: options.QueryValidate_STRING},
-		"comment":              options.FilteringOption{FilterType: options.QueryValidate_STRING},
-		"last_name":            options.FilteringOption{FilterType: options.QueryValidate_STRING},
-		"id":                   options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, FilterType: options.QueryValidate_STRING},
-		"custom_type_string":   options.FilteringOption{FilterType: options.QueryValidate_STRING},
-		"home_address.city":    options.FilteringOption{DisableSorting: true, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_MATCH, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE}, FilterType: options.QueryValidate_STRING},
-		"home_address.country": options.FilteringOption{FilterType: options.QueryValidate_STRING},
+var ExampleMethodsRequireFilteringValidation = map[string]map[string]options.FilteringOption{
+	"/example.TestService/List": map[string]options.FilteringOption{
+		"first_name":           options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE}, ValueType: options.QueryValidate_STRING},
+		"weight":               options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_LE}, ValueType: options.QueryValidate_NUMBER},
+		"speciality":           options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_EQ, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE}, ValueType: options.QueryValidate_STRING},
+		"comment":              options.FilteringOption{ValueType: options.QueryValidate_STRING},
+		"last_name":            options.FilteringOption{ValueType: options.QueryValidate_STRING},
+		"id":                   options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_STRING},
+		"custom_type_string":   options.FilteringOption{ValueType: options.QueryValidate_STRING},
+		"home_address.city":    options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_MATCH, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE}, ValueType: options.QueryValidate_STRING},
+		"home_address.country": options.FilteringOption{ValueType: options.QueryValidate_STRING},
 	},
-	"CustomType": {},
-	"Address": {
-		"city":    options.FilteringOption{DisableSorting: true, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_MATCH, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE}, FilterType: options.QueryValidate_STRING},
-		"country": options.FilteringOption{FilterType: options.QueryValidate_STRING},
+}
+var ExampleMethodsRequireSortingValidation = map[string][]string{
+	"/example.TestService/List": []string{
+		"first_name",
+		"weight",
+		"comment",
+		"last_name",
+		"id",
+		"custom_type_string",
+		"home_address.country",
 	},
-	"ListRequest":  {},
-	"ReadRequest":  {},
-	"UserResponse": {},
+	"/example.TestService/Read": []string{
+		"first_name",
+		"weight",
+		"comment",
+		"last_name",
+		"id",
+		"custom_type_string",
+		"home_address.country",
+	},
 }
-var ExampleMethodsRequireFilteringValidation = map[string]string{
-	"/example.TestService/List": "User",
-}
-var ExampleMethodsRequireSortingValidation = map[string]string{
-	"/example.TestService/List": "User",
-	"/example.TestService/Read": "User",
+var ExampleMethodsRequireFieldSelectionValidation = map[string][]string{
+	"/example.TestService/List": {
+		"first_name",
+		"weight",
+		"on_vacation",
+		"speciality",
+		"comment",
+		"last_name",
+		"id",
+		"array",
+		"custom_type",
+		"custom_type_string",
+		"home_address.city",
+		"home_address.country",
+		"home_address",
+		"work_address.city",
+		"work_address.country",
+		"work_address",
+	},
+	"/example.TestService/Read": {
+		"first_name",
+		"weight",
+		"on_vacation",
+		"speciality",
+		"comment",
+		"last_name",
+		"id",
+		"array",
+		"custom_type",
+		"custom_type_string",
+		"home_address.city",
+		"home_address.country",
+		"home_address",
+		"work_address.city",
+		"work_address.country",
+		"work_address",
+	},
 }
 
 func ExampleValidateFiltering(methodName string, f *query.Filtering) error {
-	objName, ok := ExampleMethodsRequireFilteringValidation[methodName]
-	if !ok {
-		return nil
-	}
-	var info map[string]options.FilteringOption
-	info, ok = ExampleMessagesRequireQueryValidation[objName]
+	info, ok := ExampleMethodsRequireFilteringValidation[methodName]
 	if !ok {
 		return nil
 	}
 	return options.ValidateFiltering(f, info)
 }
 func ExampleValidateSorting(methodName string, s *query.Sorting) error {
-	objName, ok := ExampleMethodsRequireSortingValidation[methodName]
-	if !ok {
-		return nil
-	}
-	var info map[string]options.FilteringOption
-	info, ok = ExampleMessagesRequireQueryValidation[objName]
+	info, ok := ExampleMethodsRequireSortingValidation[methodName]
 	if !ok {
 		return nil
 	}
 	return options.ValidateSorting(s, info)
+}
+func ExampleValidateFieldSelection(methodName string, s *query.FieldSelection) error {
+	info, ok := ExampleMethodsRequireFieldSelectionValidation[methodName]
+	if !ok {
+		return nil
+	}
+	return options.ValidateFieldSelection(s, info)
 }
