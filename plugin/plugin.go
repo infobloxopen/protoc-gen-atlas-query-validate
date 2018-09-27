@@ -230,7 +230,7 @@ func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fiel
 			if field.IsRepeated() {
 				continue
 			}
-			valueType = p.getFilterType(field)
+			valueType = p.getValueType(field)
 			if valueType == options.QueryValidate_DEFAULT {
 				if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && opts.GetEnableNestedFields() {
 					nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
@@ -248,7 +248,7 @@ func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fiel
 	return data
 }
 
-func (p *QueryValidatePlugin) getFilterType(field *descriptor.FieldDescriptorProto) options.QueryValidate_ValueType {
+func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProto) options.QueryValidate_ValueType {
 	switch field.GetType() {
 	case descriptor.FieldDescriptorProto_TYPE_STRING:
 		return options.QueryValidate_STRING
@@ -297,7 +297,7 @@ func (p *QueryValidatePlugin) getSortingData(msg *generator.Descriptor) []string
 			if field.IsRepeated() {
 				continue
 			}
-			filterType = p.getFilterType(field)
+			filterType = p.getValueType(field)
 			if filterType == options.QueryValidate_DEFAULT {
 				if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && opts.GetEnableNestedFields() {
 					nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
