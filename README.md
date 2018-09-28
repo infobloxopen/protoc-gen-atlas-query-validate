@@ -6,7 +6,7 @@ A [protobuf](https://developers.google.com/protocol-buffers/) compiler plugin
 designed to simplify validation of [Atlas](https://github.com/infobloxopen/atlas-app-toolkit)
 [gRPC](https://grpc.io/) List [query](https://github.com/infobloxopen/atlas-app-toolkit/blob/master/query/collection_operators.proto) parameters
 by generating .pb.atlas.query.validate.go files with validation rules and functions.
-Currently query.Filtering, query.Sorting, query.FieldSelection are supported for validation.
+Currently query.Filtering, query.Sorting and query.FieldSelection are supported for validation.
 
 ### Prerequisites
 
