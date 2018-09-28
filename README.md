@@ -6,7 +6,7 @@ A [protobuf](https://developers.google.com/protocol-buffers/) compiler plugin
 designed to simplify validation of [Atlas](https://github.com/infobloxopen/atlas-app-toolkit)
 [gRPC](https://grpc.io/) List [query](https://github.com/infobloxopen/atlas-app-toolkit/blob/master/query/collection_operators.proto) parameters
 by generating .pb.atlas.query.validate.go files with validation rules and functions.
-Currently query.Filtering and query.Sorting are supported for validation.
+Currently query.Filtering, query.Sorting and query.FieldSelection are supported for validation.
 
 ### Prerequisites
 
@@ -46,24 +46,24 @@ option can be specified in a protoc command to generate the .pb.atlas.query.vali
 
 #### Validation rules
 
-Validation rules are generated for each gRPC method containing query.Filtering and/or query.Sorting in it's request message
+Validation rules are generated for each gRPC method containing query.Filtering, query.Sorting or query.FieldSelection in it's request message
 based on the message included in the method's response message(will call it *resource message* for the rest of the document).
 
 By default all fields of *resource message` are allowed for filtering/sorting.
 
-The list of allowed filtering operators and filtering value type/condition type depends on the *filter_type* of the field,
-which is either taken from `(atlas.query.validate).filter_type` proto field option or is computed by the
-plugin based on the field type if the option is not supplied. Currently *filter_type* can be either STRING or NUMBER.
-The following table shows what is allowed for each *filter_type*:
+The list of allowed filtering operators and filtering value type/condition type depends on the *value_type* of the field,
+which is either taken from `(atlas.query.validate).value_type` proto field option or is computed by the
+plugin based on the field type if the option is not supplied. Currently *value_type* can be either STRING or NUMBER.
+The following table shows what is allowed for each *value_type*:
 
 |                                     | STRING | NUMBER |
 |-------------------------------------|--------|--------|
 | **Filtering operators**                 | EQ, MATCH, GT, GE, LT, LE | EQ, GT, GE, LT, LE |
 | **Filtering value type/condition type** | String, null/StringCondition, NullCondition | Number, null/NumberCondition, NullCondition       |
 
-The next table shows how *filter_type* is computed from a proto field type:
+The next table shows how *value_type* is computed from a proto field type:
 
-| Proto field type            | filter_type |
+| Proto field type            | value_type |
 |-----------------------------|---------------|
 | enum                        | STRING        |
 | string                      | STRING        |
@@ -100,7 +100,12 @@ func {Proto_file_name}ValidateFiltering(methodName string, f *query.Filtering) e
 ```golang
 func {Proto_file_name}ValidateSorting(methodName string, s *query.Sorting) error
 ```
-Not nil `error` is returned by the functions if validation is not passed.
+
+```golang
+func {Proto_file_name}ValidateFieldSelection(methodName string, s *query.FieldSelection) error
+```
+
+Non-nil `error` is returned by the functions if validation is not passed.
 
 
 ### Customization
@@ -108,24 +113,24 @@ Not nil `error` is returned by the functions if validation is not passed.
 Currently only field-level proto options are supported as customization means. We're planning to add method-level options which will override
 field-level options in order to support different validation rules for List methods having the same *resource message*.
 
-* In order to disable sorting for a field set `(atlas.query.validate).disable_sorting` option to `true`.
+* In order to disable sorting for a field set `(atlas.query.validate).sorting.disable` option to `true`.
 ```golang
-bool on_vacation = 3 [(atlas.query.validate).disable_sorting = true];
+bool on_vacation = 3 [(atlas.query.validate).sorting.disable = true];
 ```
 
-* In order to customize the list of allowed filtering operators pass either a set of `(atlas.query.validate).allow` or 
-a set of `(atlas.query.validate).deny` options.
-  - In case of using `(atlas.query.validate).allow` only specified filtering operators are allowed:
+* In order to customize the list of allowed filtering operators pass either a set of `(atlas.query.validate).filtering.allow` or 
+a set of `(atlas.query.validate).filtering.deny` options.
+  - In case of using `(atlas.query.validate).filtering.allow` only specified filtering operators are allowed:
     ```golang
-    string first_name = 1 [(atlas.query.validate) = {allow: MATCH, allow: EQ}];
+    string first_name = 1 [(atlas.query.validate).filtering = {allow: MATCH, allow: EQ}];
     ```
-  - In case of using `(atlas.query.validate).deny` all appropriate(for the field type) filtering operators except specified ones are allowed:
+  - In case of using `(atlas.query.validate).filtering.deny` all appropriate(for the field type) filtering operators except specified ones are allowed:
     ```golang
-    string first_name = 1 [(atlas.query.validate) = {deny: GT, deny: GE, deny: LT, deny: LE}];
+    string first_name = 1 [(atlas.query.validate).filtering = {deny: GT, deny: GE, deny: LT, deny: LE}];
     ```
-* In order to change default *filter_type* for a field pass `(atlas.query.validate).filter_type` option.
+* In order to change default *value_type* for a field pass `(atlas.query.validate).value_type` option.
 ```golang
-CustomType custom_type_string = 10 [(atlas.query.validate) = {filter_type: STRING}];
+CustomType custom_type_string = 10 [(atlas.query.validate) = {value_type: STRING}];
 ```
 * In order to enable filtering/sorting by nested fields set `(atlas.query.validate).enable_nested_fields` option to true
 on the field of a message type.
@@ -137,7 +142,7 @@ message User {
 }
 
 message Address {
-    string city = 1 [(atlas.query.validate) = {allow: EQ, disable_sorting: true}];
+    string city = 1 [(atlas.query.validate) = {filtering: {allow: EQ}, sorting: {disable: true}}];
     string country = 2;
 }
 ```

@@ -11,7 +11,6 @@ extend google.protobuf.FieldOptions {
 }
 
 message QueryValidate {
-  optional bool disable_sorting = 1;
   enum FilterOperator {
     EQ = 0;
     MATCH = 1;
@@ -21,13 +20,20 @@ message QueryValidate {
     LE = 5;
     ALL = 6;
   }
-  repeated FilterOperator allow = 2;
-  repeated FilterOperator deny = 3;
-  enum FilterType {
+  message Filtering {
+    repeated FilterOperator allow = 1;
+    repeated FilterOperator deny = 2;
+  }
+  optional Filtering filtering = 1;
+  message Sorting {
+    optional bool disable = 1;
+  }
+  optional Sorting sorting = 2;
+  enum ValueType {
     DEFAULT = 0;
     STRING = 1;
     NUMBER = 2;
   }
-  optional FilterType filter_type  = 4;
-  optional bool enable_nested_fields = 5;
+  optional ValueType value_type  = 3;
+  optional bool enable_nested_fields = 4;
 }

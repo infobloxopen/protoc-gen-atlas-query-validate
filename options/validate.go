@@ -13,9 +13,8 @@ type FilteringOptions struct {
 }
 
 type FilteringOption struct {
-	DisableSorting bool
-	FilterType     QueryValidate_FilterType
-	Deny           []QueryValidate_FilterOperator
+	ValueType QueryValidate_ValueType
+	Deny      []QueryValidate_FilterOperator
 }
 
 func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOption) error {
@@ -35,14 +34,14 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 
 		switch x := f.(type) {
 		case *query.StringCondition:
-			if fieldInfo.FilterType != QueryValidate_STRING {
-				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.FilterType)
+			if fieldInfo.ValueType != QueryValidate_STRING {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.ValueType)
 			}
 			sc := &query.Filtering_StringCondition{x}
 			tp = query.StringCondition_Type_name[int32(sc.StringCondition.Type)]
 		case *query.NumberCondition:
-			if fieldInfo.FilterType != QueryValidate_NUMBER {
-				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.FilterType)
+			if fieldInfo.ValueType != QueryValidate_NUMBER {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.ValueType)
 			}
 			nc := &query.Filtering_NumberCondition{x}
 			tp = query.NumberCondition_Type_name[int32(nc.NumberCondition.Type)]
@@ -121,24 +120,50 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 	return vres
 }
 
-func ValidateSorting(p *query.Sorting, messageInfo map[string]FilteringOption) error {
-	var res error
-	var fieldInfo FilteringOption
-
+func ValidateSorting(p *query.Sorting, fields []string) error {
 	if p != nil {
 		for _, criteria := range p.GetCriterias() {
 			tag := criteria.GetTag()
 			var ok bool
-			fieldInfo, ok = messageInfo[tag]
-			if !ok {
-				return fmt.Errorf("Unknown field: %s", tag)
+			for _, v := range fields {
+				if v == tag {
+					ok = true
+				}
 			}
-
-			if fieldInfo.DisableSorting {
-				res = fmt.Errorf("Sorting is not allowed for '%s'", tag)
-				break
+			if !ok {
+				return fmt.Errorf("Sorting is not allowed for '%s'", tag)
 			}
 		}
 	}
-	return res
+	return nil
+}
+
+func ValidateFieldSelection(fs *query.FieldSelection, allowedFields []string) error {
+	var flatten func(fields map[string]*query.Field) []string
+	flatten = func(fields map[string]*query.Field) []string {
+		var flatFields []string
+		for _, v := range fields {
+			if v.GetSubs() != nil {
+				subFields := flatten(v.GetSubs())
+				for _, i := range subFields {
+					flatFields = append(flatFields, v.GetName()+"."+i)
+				}
+			}
+			flatFields = append(flatFields, v.GetName())
+		}
+		return flatFields
+	}
+	flatFields := flatten(fs.GetFields())
+	for _, f := range flatFields {
+		var ok bool
+		for _, v := range allowedFields {
+			if f == v {
+				ok = true
+			}
+		}
+		if !ok {
+			return fmt.Errorf("Unknown field: '%s'", f)
+		}
+	}
+	return nil
 }

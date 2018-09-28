@@ -6,7 +6,7 @@ import (
 	"github.com/infobloxopen/atlas-app-toolkit/query"
 )
 
-func TestFilteringPermissionsValidation(t *testing.T) {
+func TestValidateFiltering(t *testing.T) {
 	tests := []struct {
 		Query string
 		Err   bool
@@ -52,7 +52,7 @@ func TestFilteringPermissionsValidation(t *testing.T) {
 	}
 }
 
-func TestSortingPermissionsValidation(t *testing.T) {
+func TestValidateSorting(t *testing.T) {
 	tests := []struct {
 		Query string
 		Err   bool
@@ -76,6 +76,49 @@ func TestSortingPermissionsValidation(t *testing.T) {
 			t.Fatalf("Invalid sorting data '%s'", test.Query)
 		}
 		err = ExampleValidateSorting("/example.TestService/List", s)
+		if err != nil {
+			if test.Err == false {
+				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
+			}
+		} else {
+			if test.Err == true {
+				t.Errorf("Expected error for %s query, but got no error", test.Query)
+			}
+		}
+	}
+}
+
+func TestValidateFieldSelection(t *testing.T) {
+	tests := []struct {
+		Query string
+		Err   bool
+	}{
+		{`first_name`, false},
+		{`weight`, false},
+		{`on_vacation`, false},
+		{`speciality`, false},
+		{`comment`, false},
+		{`last_name`, false},
+		{`id`, false},
+		{`array`, false},
+		{`custom_type`, false},
+		{`custom_type_string`, false},
+		{`home_address`, false},
+		{`home_address.city`, false},
+		{`home_address.country`, false},
+		{`work_address`, false},
+		{`work_address.city`, false},
+		{`work_address.country`, false},
+		{`first_name,weight,on_vacation`, false},
+		{`unknown_field`, true},
+		{`work_address.unknown_field`, true},
+		{`last_name.value`, true},
+		{`first_name,unknown_field`, true},
+	}
+
+	for _, test := range tests {
+		fs := query.ParseFieldSelection(test.Query)
+		err := ExampleValidateFieldSelection("/example.TestService/List", fs)
 		if err != nil {
 			if test.Err == false {
 				t.Errorf("Unexpected error for %s query: %s", test.Query, err)
