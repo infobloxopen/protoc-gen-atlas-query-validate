@@ -45,6 +45,19 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 			}
 			nc := &query.Filtering_NumberCondition{x}
 			tp = query.NumberCondition_Type_name[int32(nc.NumberCondition.Type)]
+		case *query.StringArrayCondition:
+			if fieldInfo.ValueType != QueryValidate_STRING_ARRAY {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.ValueType)
+			}
+			nc := &query.Filtering_StringArrayCondition{x}
+			tp = query.StringArrayCondition_Type_name[int32(nc.StringArrayCondition.Type)]
+		case *query.NumberArrayCondition:
+			if fieldInfo.ValueType != QueryValidate_STRING_ARRAY {
+				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.ValueType)
+			}
+			nc := &query.Filtering_NumberArrayCondition{x}
+			tp = query.NumberArrayCondition_Type_name[int32(nc.NumberArrayCondition.Type)]
+
 		default:
 			return nil
 		}
@@ -77,6 +90,12 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 
 		case *query.LogicalOperator_LeftNullCondition:
 			vres = validate(leftVal.LeftNullCondition.GetFieldPath(), leftVal.LeftNullCondition)
+
+		case *query.LogicalOperator_LeftStringArrayCondition:
+			vres = validate(leftVal.LeftStringArrayCondition.GetFieldPath(), leftVal.LeftStringArrayCondition)
+
+		case *query.LogicalOperator_LeftNumberArrayCondition:
+			vres = validate(leftVal.LeftNumberArrayCondition.GetFieldPath(), leftVal.LeftNumberArrayCondition)
 		}
 
 		if vres != nil {
@@ -96,6 +115,12 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 
 		case *query.LogicalOperator_RightNullCondition:
 			vres = validate(rightVal.RightNullCondition.GetFieldPath(), rightVal.RightNullCondition)
+
+		case *query.LogicalOperator_RightStringArrayCondition:
+			vres = validate(rightVal.RightStringArrayCondition.GetFieldPath(), rightVal.RightStringArrayCondition)
+
+		case *query.LogicalOperator_RightNumberArrayCondition:
+			vres = validate(rightVal.RightNumberArrayCondition.GetFieldPath(), rightVal.RightNumberArrayCondition)
 		}
 
 		return vres
@@ -115,6 +140,12 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 
 		case *query.Filtering_NullCondition:
 			vres = validate(val.NullCondition.GetFieldPath(), val.NullCondition)
+
+		case *query.Filtering_StringArrayCondition:
+			vres = validate(val.StringArrayCondition.GetFieldPath(), val.StringArrayCondition)
+
+		case *query.Filtering_NumberArrayCondition:
+			vres = validate(val.NumberArrayCondition.GetFieldPath(), val.NumberArrayCondition)
 		}
 	}
 	return vres
