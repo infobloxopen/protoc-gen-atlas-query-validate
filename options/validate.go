@@ -46,7 +46,7 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 			nc := &query.Filtering_NumberCondition{x}
 			tp = query.NumberCondition_Type_name[int32(nc.NumberCondition.Type)]
 		case *query.StringArrayCondition:
-			if fieldInfo.ValueType != QueryValidate_STRING  {
+			if fieldInfo.ValueType != QueryValidate_STRING {
 				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.ValueType)
 			}
 			nc := &query.Filtering_StringArrayCondition{x}
