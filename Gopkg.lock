@@ -91,7 +91,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:40dc462380808f05d7ddd068d6db157234f6a92c96c9128801cc9d27c2cb9e61"
+  digest = "1:ae1f55d5a8d8242c73445d2e19069ed6f75ffae0cd2f29cdaf49428a35062ba2"
   name = "github.com/infobloxopen/atlas-app-toolkit"
   packages = [
     "errors",
@@ -100,7 +100,7 @@
     "rpc/errfields",
   ]
   pruneopts = "UT"
-  revision = "984731786f34f618665e2bd72d9567c1c8909e8d"
+  revision = "8a18827fb729501d587ca542753b3d4906b32a4e"
 
 [[projects]]
   branch = "master"

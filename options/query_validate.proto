@@ -35,8 +35,6 @@ message QueryValidate {
     DEFAULT = 0;
     STRING = 1;
     NUMBER = 2;
-    STRING_ARRAY = 3;
-    NUMBER_ARRAY = 4;
   }
   optional ValueType value_type  = 3;
   optional bool enable_nested_fields = 4;
