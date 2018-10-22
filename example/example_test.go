@@ -32,6 +32,9 @@ func TestValidateFiltering(t *testing.T) {
 		{`home_address.city~"city"`, true},
 		{`home_address.country~"country"`, false},
 		{`work_address.city=="city"`, true},
+		{`home_address.country := "country"`, false},
+		{`home_address.country in ["country", "another_country"]`, false},
+		{`weight in [10, 20, 30]`, false},
 	}
 
 	for _, test := range tests {
