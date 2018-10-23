@@ -58,8 +58,8 @@ The following table shows what is allowed for each *value_type*:
 
 |                                     | STRING | NUMBER |
 |-------------------------------------|--------|--------|
-| **Filtering operators**                 | EQ, MATCH, GT, GE, LT, LE | EQ, GT, GE, LT, LE |
-| **Filtering value type/condition type** | String, null/StringCondition, NullCondition | Number, null/NumberCondition, NullCondition       |
+| **Filtering operators**                 | EQ, MATCH, GT, GE, LT, LE, IEQ, IN | EQ, GT, GE, LT, LE, IN | 
+| **Filtering value type/condition type** | String, null/StringCondition, NullCondition, StringArray(only for IN)| Number, null/NumberCondition, NullCondition, NumberArray(only for IN)|
 
 The next table shows how *value_type* is computed from a proto field type:
 
