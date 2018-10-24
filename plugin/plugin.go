@@ -375,6 +375,7 @@ func (p *QueryValidatePlugin) getDenyRules(field *descriptor.FieldDescriptorProt
 			options.QueryValidate_GE,
 			options.QueryValidate_LT,
 			options.QueryValidate_LE,
+			options.QueryValidate_IN,
 		}
 	} else if filterType == options.QueryValidate_STRING {
 		supportedOps = []options.QueryValidate_FilterOperator{
@@ -384,6 +385,8 @@ func (p *QueryValidatePlugin) getDenyRules(field *descriptor.FieldDescriptorProt
 			options.QueryValidate_GE,
 			options.QueryValidate_LT,
 			options.QueryValidate_LE,
+			options.QueryValidate_IN,
+			options.QueryValidate_IEQ,
 		}
 	}
 

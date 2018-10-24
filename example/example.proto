@@ -11,7 +11,7 @@ message User {
     float weight = 2 [(atlas.query.validate).filtering.deny = LE];
     bool on_vacation = 3 [(atlas.query.validate).sorting.disable = true];
     string speciality = 4 [(atlas.query.validate) = {filtering: {allow: MATCH}, sorting: {disable: true}}];
-    string comment = 5;
+    string comment = 5 [(atlas.query.validate).filtering.deny = IN];
     google.protobuf.StringValue last_name = 6;
     string id = 7 [(atlas.query.validate).filtering.deny = ALL];
     repeated string array = 8;
@@ -19,6 +19,8 @@ message User {
     CustomType custom_type_string = 10 [(atlas.query.validate) = {value_type: STRING}];
     Address home_address = 11 [(atlas.query.validate) = {enable_nested_fields: true}];
     Address work_address = 12;
+    string company = 13 [(atlas.query.validate).filtering.deny = IEQ];
+    string nationality = 14 [(atlas.query.validate).filtering.deny = IN];
 }
 
 message CustomType {
