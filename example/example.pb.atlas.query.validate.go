@@ -20,6 +20,8 @@ var ExampleMethodsRequireFilteringValidation = map[string]map[string]options.Fil
 		"custom_type_string":   options.FilteringOption{ValueType: options.QueryValidate_STRING},
 		"home_address.city":    options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_MATCH, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"home_address.country": options.FilteringOption{ValueType: options.QueryValidate_STRING},
+		"company":              options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
+		"nationality":          options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IN}, ValueType: options.QueryValidate_STRING},
 	},
 }
 var ExampleMethodsRequireSortingValidation = map[string][]string{
@@ -31,6 +33,8 @@ var ExampleMethodsRequireSortingValidation = map[string][]string{
 		"id",
 		"custom_type_string",
 		"home_address.country",
+		"company",
+		"nationality",
 	},
 	"/example.TestService/Read": []string{
 		"first_name",
@@ -40,6 +44,8 @@ var ExampleMethodsRequireSortingValidation = map[string][]string{
 		"id",
 		"custom_type_string",
 		"home_address.country",
+		"company",
+		"nationality",
 	},
 }
 var ExampleMethodsRequireFieldSelectionValidation = map[string][]string{
@@ -60,6 +66,8 @@ var ExampleMethodsRequireFieldSelectionValidation = map[string][]string{
 		"work_address.city",
 		"work_address.country",
 		"work_address",
+		"company",
+		"nationality",
 	},
 	"/example.TestService/Read": {
 		"first_name",
@@ -78,6 +86,8 @@ var ExampleMethodsRequireFieldSelectionValidation = map[string][]string{
 		"work_address.city",
 		"work_address.country",
 		"work_address",
+		"company",
+		"nationality",
 	},
 }
 
