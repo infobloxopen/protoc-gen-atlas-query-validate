@@ -14,8 +14,6 @@ install:
   - curl -L -s https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip -o protoc.zip
   - unzip protoc.zip
   - cp -r ./bin/protoc ./include $HOME/bin/
-  # Download and install protoc-gen-gogo
-  - go get github.com/gogo/protobuf/protoc-gen-gogo
   # Download  plugin golang dependencies
   - make vendor
 
