@@ -4,8 +4,7 @@ go:
   - "1.10"
 
 env:
-  - DEP_VERSION="0.4.1"
-  - PROTOC_VERSION="3.6.1"
+  - DEP_VERSION="0.4.1" PROTOC_VERSION="3.6.1"
 
 install:
   # Download and install dep
