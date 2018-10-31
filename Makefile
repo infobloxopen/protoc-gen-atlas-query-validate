@@ -1,7 +1,7 @@
 GOPATH ?= $(HOME)/go
 SRCPATH := $(patsubst %/,%,$(GOPATH))/src
 
-default: options install
+default: install
 
 .PHONY: options
 options:
