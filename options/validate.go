@@ -30,7 +30,7 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 			return fmt.Errorf("Unknown field: %s", fieldTag)
 		}
 		if fieldInfo.ValueType == QueryValidate_DEFAULT {
-			return fmt.Errorf("Filtering not supported for field %s", fieldTag)
+			return fmt.Errorf("Filtering is not supported for field %s", fieldTag)
 		}
 
 		tp := ""
