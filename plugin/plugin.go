@@ -228,8 +228,10 @@ func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fiel
 		valueType := opts.GetValueType()
 		if valueType == options.QueryValidate_DEFAULT {
 			if field.IsRepeated() {
+				data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_DEFAULT, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
 				continue
 			}
+
 			valueType = p.getValueType(field)
 			if valueType == options.QueryValidate_DEFAULT {
 				if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && opts.GetEnableNestedFields() {
@@ -238,7 +240,9 @@ func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fiel
 					for _, v := range nestedDeny {
 						data = append(data, fieldValidate{fieldName + "." + v.fieldName, v.option})
 					}
+					continue
 				}
+				data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_DEFAULT, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
 				continue
 			}
 

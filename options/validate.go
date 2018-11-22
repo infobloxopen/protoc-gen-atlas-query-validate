@@ -29,6 +29,9 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 		if !ok {
 			return fmt.Errorf("Unknown field: %s", fieldTag)
 		}
+		if fieldInfo.ValueType == QueryValidate_DEFAULT {
+			return fmt.Errorf("Filtering is not supported for field %s", fieldTag)
+		}
 
 		tp := ""
 
@@ -57,8 +60,8 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 			}
 			nc := &query.Filtering_NumberArrayCondition{x}
 			tp = query.NumberArrayCondition_Type_name[int32(nc.NumberArrayCondition.Type)]
-
 		default:
+
 			return nil
 		}
 		for _, val := range fieldInfo.Deny {
