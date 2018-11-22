@@ -23,3 +23,8 @@ test: example
 .PHONY: vendor
 vendor:
 	dep ensure -vendor-only
+
+.PHONY: gentool
+gentool:
+	docker build -t infoblox/atlas-gentool:test-query .
+	docker image prune -f --filter label=stage=server-intermediate
