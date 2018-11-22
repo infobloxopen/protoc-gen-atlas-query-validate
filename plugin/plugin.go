@@ -228,11 +228,7 @@ func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fiel
 		valueType := opts.GetValueType()
 		if valueType == options.QueryValidate_DEFAULT {
 			if field.IsRepeated() {
-				if valueType == options.QueryValidate_DEFAULT {
-					data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_STRING, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
-				}else {
-					data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: valueType, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
-				}
+				data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_DEFAULT, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
 				continue
 			}
 
@@ -246,7 +242,7 @@ func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fiel
 					}
 					continue
 				}
-				data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_STRING, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
+				data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_DEFAULT, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
 				continue
 			}
 
