@@ -30,6 +30,7 @@ const (
 	protoTypeUUIDValue   = ".gorm.types.UUIDValue"
 	protoTypeResource    = ".atlas.rpc.Identifier"
 	protoTypeInet        = ".gorm.types.InetValue"
+	protoTypeJSON        = ".gorm.types.JSONValue"
 	protoTypeStringValue = ".google.protobuf.StringValue"
 	protoTypeDoubleValue = ".google.protobuf.DoubleValue"
 	protoTypeFloatValue  = ".google.protobuf.FloatValue"
@@ -274,7 +275,8 @@ func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProt
 			protoTypeUUID,
 			protoTypeUUIDValue,
 			protoTypeInet,
-			protoTypeStringValue:
+			protoTypeStringValue,
+			protoTypeJSON:
 			return options.QueryValidate_STRING
 		case protoTypeDoubleValue,
 			protoTypeFloatValue,
