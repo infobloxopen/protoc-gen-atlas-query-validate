@@ -24,14 +24,14 @@ func getFieldInfo(path []string, messageInfo map[string]FilteringOption) (Filter
 	}
 
 	if len(path) >= 1 {
-		fdPrefixTag := strings.Join(path[:1], ".")
+		fdPrefixTag := strings.Join(path[:1], ".") + ".*"
 		if fieldInfo, ok := messageInfo[fdPrefixTag]; ok {
 			return fieldInfo, nil
 		}
 	}
 
 	if len(path) >= 2 {
-		fdPrefixTagNested := strings.Join(path[:2], ".")
+		fdPrefixTagNested := strings.Join(path[:2], ".") + ".*"
 		if fieldInfo, ok := messageInfo[fdPrefixTagNested]; ok {
 			return fieldInfo, nil
 		}
