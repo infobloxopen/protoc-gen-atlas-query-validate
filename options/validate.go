@@ -30,13 +30,6 @@ func getFieldInfo(path []string, messageInfo map[string]FilteringOption) (Filter
 		}
 	}
 
-	if len(path) >= 2 {
-		fdPrefixTagNested := strings.Join(path[:2], ".") + ".*"
-		if fieldInfo, ok := messageInfo[fdPrefixTagNested]; ok {
-			return fieldInfo, nil
-		}
-	}
-
 	return FilteringOption{}, fmt.Errorf("Unknown field: %s", fieldTag)
 }
 
