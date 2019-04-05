@@ -17,18 +17,34 @@ type FilteringOption struct {
 	Deny      []QueryValidate_FilterOperator
 }
 
+func getFieldInfo(path []string, messageInfo map[string]FilteringOption) (FilteringOption, error) {
+	fieldTag := strings.Join(path, ".")
+	if fieldInfo, ok := messageInfo[fieldTag]; ok {
+		return fieldInfo, nil
+	}
+
+	if len(path) >= 1 {
+		fdPrefixTag := strings.Join(path[:1], ".") + ".*"
+		if fieldInfo, ok := messageInfo[fdPrefixTag]; ok {
+			return fieldInfo, nil
+		}
+	}
+
+	return FilteringOption{}, fmt.Errorf("Unknown field: %s", fieldTag)
+}
+
 func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOption) error {
 	var getOperator func(interface{}) error
 	var fieldInfo FilteringOption
 
 	validate := func(path []string, f interface{}) error {
-
-		var ok bool
+		var err error
 		fieldTag := strings.Join(path, ".")
-		fieldInfo, ok = messageInfo[fieldTag]
-		if !ok {
-			return fmt.Errorf("Unknown field: %s", fieldTag)
+		fieldInfo, err = getFieldInfo(path, messageInfo)
+		if err != nil {
+			return err
 		}
+
 		if fieldInfo.ValueType == QueryValidate_DEFAULT {
 			return fmt.Errorf("Filtering is not supported for field %s", fieldTag)
 		}

@@ -30,6 +30,7 @@ const (
 	protoTypeUUIDValue   = ".gorm.types.UUIDValue"
 	protoTypeResource    = ".atlas.rpc.Identifier"
 	protoTypeInet        = ".gorm.types.InetValue"
+	protoTypeJSONValue   = ".gorm.types.JSONValue"
 	protoTypeStringValue = ".google.protobuf.StringValue"
 	protoTypeDoubleValue = ".google.protobuf.DoubleValue"
 	protoTypeFloatValue  = ".google.protobuf.FloatValue"
@@ -225,6 +226,9 @@ func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fiel
 	for _, field := range msg.GetField() {
 		opts := getQueryValidationOptions(field)
 		fieldName := field.GetName()
+		if field.GetTypeName() == protoTypeJSONValue {
+			fieldName += ".*"
+		}
 		valueType := opts.GetValueType()
 		if valueType == options.QueryValidate_DEFAULT {
 			if field.IsRepeated() {
@@ -274,7 +278,8 @@ func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProt
 			protoTypeUUID,
 			protoTypeUUIDValue,
 			protoTypeInet,
-			protoTypeStringValue:
+			protoTypeStringValue,
+			protoTypeJSONValue:
 			return options.QueryValidate_STRING
 		case protoTypeDoubleValue,
 			protoTypeFloatValue,
