@@ -2,7 +2,7 @@ required = ["github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger"]
 
 [[constraint]]
   name = "github.com/gogo/protobuf"
-  version = "1.1.1"
+  version = "1.0.0"
 
 [[constraint]]
   name = "github.com/infobloxopen/atlas-app-toolkit"

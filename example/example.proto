@@ -7,6 +7,13 @@ import "github.com/infobloxopen/protoc-gen-atlas-query-validate/options/query_va
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
 message User {
+    option (atlas.query.message) = {
+            validate: {name: "custom_search", value: {value_type_url: ".example.Address", nested_fields: ["country"]}};
+            validate: {name: "custom_search_2", value: {value_type: STRING, filtering: {allow: MATCH, allow: EQ}}};
+            validate: {name: "list_of_addresses", value: {value_type_url: ".example.Address", enable_nested_fields: true, field_selection: {disable: false}}};
+            validate: {name: "user_friend", value: {value_type_url: ".example.User", enable_nested_fields: true}};
+    };
+
     string first_name = 1 [(atlas.query.validate).filtering = {allow: MATCH, allow: EQ}];
     float weight = 2 [(atlas.query.validate).filtering.deny = LE];
     bool on_vacation = 3 [(atlas.query.validate).sorting.disable = true];
@@ -59,3 +66,4 @@ service TestService {
     rpc Read (ReadRequest) returns (ReadUserResponse) {
     }
 }
+
