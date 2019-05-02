@@ -26,5 +26,5 @@ vendor:
 
 .PHONY: gentool
 gentool:
-	docker build -t infoblox/atlas-gentool:test-query .
+	docker build -t infoblox/atlas-gentool:atlas-validate-query-dev .
 	docker image prune -f --filter label=stage=server-intermediate

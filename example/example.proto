@@ -28,6 +28,7 @@ message User {
     Address work_address = 12;
     string company = 13 [(atlas.query.validate).filtering.deny = IEQ];
     string nationality = 14 [(atlas.query.validate).filtering.deny = IN];
+    bool boolean_field = 15;
 }
 
 message CustomType {

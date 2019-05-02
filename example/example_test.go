@@ -38,6 +38,10 @@ func TestValidateFiltering(t *testing.T) {
 		{`nationality in ["American", "Сhinese"]`, true},
 		{`weight in [10, 20, 30]`, false},
 		{`comment in [10, 20, 30]`, true},
+		{`boolean_field in ["true", "1", "t", "True", "TRUE", "false", "0", "f", "False", "FALSE"]`, false},
+		{`boolean_field in ["tRuE"]`, true},
+		{`boolean_field=="True"`, false},
+		{`boolean_field=="Blah"`, true},
 	}
 
 	for _, test := range tests {

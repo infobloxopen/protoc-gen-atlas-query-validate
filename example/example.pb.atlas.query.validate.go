@@ -12,31 +12,25 @@ import _ "github.com/golang/protobuf/ptypes/wrappers"
 var ExampleMethodsRequireFilteringValidation = map[string]map[string]options.FilteringOption{
 	"/example.TestService/List": map[string]options.FilteringOption{
 		"custom_search_2":                options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
-		"custom_search.city":             options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
 		"custom_search.country":          options.FilteringOption{ValueType: options.QueryValidate_STRING},
 		"list_of_addresses.city":         options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_MATCH, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"list_of_addresses.country":      options.FilteringOption{ValueType: options.QueryValidate_STRING},
 		"user_friend.custom_search_2":    options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
-		"user_friend.custom_search":      options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
-		"user_friend.list_of_addresses":  options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
-		"user_friend.user_friend":        options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
 		"user_friend.first_name":         options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"user_friend.weight":             options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_LE}, ValueType: options.QueryValidate_NUMBER},
-		"user_friend.on_vacation":        options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
+		"user_friend.on_vacation":        options.FilteringOption{ValueType: options.QueryValidate_BOOL},
 		"user_friend.speciality":         options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_EQ, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"user_friend.comment":            options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IN}, ValueType: options.QueryValidate_STRING},
 		"user_friend.last_name":          options.FilteringOption{ValueType: options.QueryValidate_STRING},
 		"user_friend.id":                 options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_STRING},
 		"user_friend.array":              options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
-		"user_friend.custom_type":        options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
 		"user_friend.custom_type_string": options.FilteringOption{ValueType: options.QueryValidate_STRING},
-		"user_friend.home_address":       options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
-		"user_friend.work_address":       options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
 		"user_friend.company":            options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"user_friend.nationality":        options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IN}, ValueType: options.QueryValidate_STRING},
+		"user_friend.boolean_field":      options.FilteringOption{ValueType: options.QueryValidate_BOOL},
 		"first_name":                     options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"weight":                         options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_LE}, ValueType: options.QueryValidate_NUMBER},
-		"on_vacation":                    options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
+		"on_vacation":                    options.FilteringOption{ValueType: options.QueryValidate_BOOL},
 		"speciality":                     options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_EQ, options.QueryValidate_GT, options.QueryValidate_GE, options.QueryValidate_LT, options.QueryValidate_LE, options.QueryValidate_IN, options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"comment":                        options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IN}, ValueType: options.QueryValidate_STRING},
 		"last_name":                      options.FilteringOption{ValueType: options.QueryValidate_STRING},
@@ -49,6 +43,7 @@ var ExampleMethodsRequireFilteringValidation = map[string]map[string]options.Fil
 		"work_address":                   options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}, ValueType: options.QueryValidate_DEFAULT},
 		"company":                        options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IEQ}, ValueType: options.QueryValidate_STRING},
 		"nationality":                    options.FilteringOption{Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_IN}, ValueType: options.QueryValidate_STRING},
+		"boolean_field":                  options.FilteringOption{ValueType: options.QueryValidate_BOOL},
 	},
 }
 var ExampleMethodsRequireSortingValidation = map[string][]string{
@@ -59,8 +54,10 @@ var ExampleMethodsRequireSortingValidation = map[string][]string{
 		"last_name",
 		"id",
 		"custom_type_string",
+		"home_address.country",
 		"company",
 		"nationality",
+		"boolean_field",
 	},
 	"/example.TestService/Read": []string{
 		"first_name",
@@ -69,8 +66,10 @@ var ExampleMethodsRequireSortingValidation = map[string][]string{
 		"last_name",
 		"id",
 		"custom_type_string",
+		"home_address.country",
 		"company",
 		"nationality",
+		"boolean_field",
 	},
 }
 var ExampleMethodsRequireFieldSelectionValidation = map[string][]string{
@@ -96,6 +95,7 @@ var ExampleMethodsRequireFieldSelectionValidation = map[string][]string{
 		"work_address",
 		"company",
 		"nationality",
+		"boolean_field",
 	},
 	"/example.TestService/Read": {
 		"list_of_addresses.city",
@@ -119,6 +119,7 @@ var ExampleMethodsRequireFieldSelectionValidation = map[string][]string{
 		"work_address",
 		"company",
 		"nationality",
+		"boolean_field",
 	},
 }
 

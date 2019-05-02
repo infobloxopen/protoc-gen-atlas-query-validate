@@ -39,6 +39,7 @@ message QueryValidate {
     DEFAULT = 0;
     STRING = 1;
     NUMBER = 2;
+    BOOL = 3;
   }
   ValueType value_type  = 4;
   string value_type_url = 5;
