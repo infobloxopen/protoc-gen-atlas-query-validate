@@ -38,6 +38,7 @@ const (
 	protoTypeInt64Value  = ".google.protobuf.Int64Value"
 	protoTypeUInt32Value = ".google.protobuf.UInt32Value"
 	protoTypeUInt64Value = ".google.protobuf.UInt64Value"
+	protoTypeBoolValue   = ".google.protobuf.BoolValue"
 )
 
 // QueryValidatePlugin implements the plugin interface and creates validations for collection operation parameters code from .protos
@@ -409,6 +410,8 @@ func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProt
 			protoTypeUInt32Value,
 			protoTypeUInt64Value:
 			return options.QueryValidate_NUMBER
+		case protoTypeBoolValue:
+			return options.QueryValidate_BOOL
 		default:
 			return options.QueryValidate_DEFAULT
 		}
@@ -526,6 +529,7 @@ func (p *QueryValidatePlugin) getFieldSelectionDataAux(msg *generator.Descriptor
 					protoTypeUUIDValue,
 					protoTypeInet,
 					protoTypeStringValue:
+				case protoTypeBoolValue:
 				case protoTypeDoubleValue,
 					protoTypeFloatValue,
 					protoTypeInt32Value,
@@ -589,7 +593,6 @@ func (p *QueryValidatePlugin) getDenyRules(fieldName string, opts *options.Query
 		supportedOps = []options.QueryValidate_FilterOperator{
 			options.QueryValidate_EQ,
 			options.QueryValidate_IN,
-			options.QueryValidate_IEQ,
 		}
 	}
 

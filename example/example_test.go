@@ -42,6 +42,7 @@ func TestValidateFiltering(t *testing.T) {
 		{`boolean_field in ["tRuE"]`, true},
 		{`boolean_field=="True"`, false},
 		{`boolean_field=="Blah"`, true},
+		{`boolean_field:="True"`, true},
 	}
 
 	for _, test := range tests {

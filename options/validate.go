@@ -59,6 +59,11 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 			}
 
 			if fieldInfo.ValueType == QueryValidate_BOOL {
+
+				if x.Type != query.StringCondition_EQ {
+					return fmt.Errorf("Operation %s is not allowed for %q", query.StringCondition_Type_name[int32(x.Type)], fieldTag)
+				}
+
 				if _, err := strconv.ParseBool(x.Value); err != nil {
 					return fmt.Errorf("Got invalid literal for field %q of type %s, expect 'true' or 'false'", fieldTag, fieldInfo.ValueType)
 				}
