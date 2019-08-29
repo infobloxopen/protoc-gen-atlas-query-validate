@@ -38,6 +38,7 @@ const (
 	protoTypeInt64Value  = ".google.protobuf.Int64Value"
 	protoTypeUInt32Value = ".google.protobuf.UInt32Value"
 	protoTypeUInt64Value = ".google.protobuf.UInt64Value"
+	protoTypeBoolValue   = ".google.protobuf.BoolValue"
 )
 
 // QueryValidatePlugin implements the plugin interface and creates validations for collection operation parameters code from .protos
@@ -101,9 +102,6 @@ func (p *QueryValidatePlugin) genFiltering() {
 			hasFiltering := p.hasFiltering(p.ObjectNamed(method.GetInputType()).(*generator.Descriptor))
 			outputMsg := p.ObjectNamed(method.GetOutputType()).(*generator.Descriptor)
 			resultMsg := p.getResultMessage(outputMsg)
-			if resultMsg == nil {
-				resultMsg = p.getResultsMessage(outputMsg)
-			}
 			if hasFiltering && resultMsg != nil {
 				p.P(`"`, fmt.Sprintf("/%s.%s/%s", p.currentFile.GetPackage(), srv.GetName(), method.GetName()), `": map[string]options.FilteringOption{`)
 				filteringInfo := p.getFilteringData(resultMsg)
@@ -132,9 +130,6 @@ func (p *QueryValidatePlugin) genSorting() {
 			hasSorting := p.hasSorting(p.ObjectNamed(method.GetInputType()).(*generator.Descriptor))
 			outputMsg := p.ObjectNamed(method.GetOutputType()).(*generator.Descriptor)
 			resultMsg := p.getResultMessage(outputMsg)
-			if resultMsg == nil {
-				resultMsg = p.getResultsMessage(outputMsg)
-			}
 			if hasSorting && resultMsg != nil {
 				p.P(`"`, fmt.Sprintf("/%s.%s/%s", p.currentFile.GetPackage(), srv.GetName(), method.GetName()), `": []string {`)
 				sortingInfo := p.getSortingData(resultMsg)
@@ -155,9 +150,6 @@ func (p *QueryValidatePlugin) genFieldSelection() {
 			hasFieldSelection := p.hasFieldSelection(p.ObjectNamed(method.GetInputType()).(*generator.Descriptor))
 			outputMsg := p.ObjectNamed(method.GetOutputType()).(*generator.Descriptor)
 			resultMsg := p.getResultMessage(outputMsg)
-			if resultMsg == nil {
-				resultMsg = p.getResultsMessage(outputMsg)
-			}
 			if hasFieldSelection && resultMsg != nil {
 				p.P(`"`, fmt.Sprintf("/%s.%s/%s", p.currentFile.GetPackage(), srv.GetName(), method.GetName()), `": {`)
 				fields := p.getFieldSelectionData(resultMsg)
@@ -200,19 +192,14 @@ func (p *QueryValidatePlugin) hasSorting(msg *generator.Descriptor) bool {
 
 func (p *QueryValidatePlugin) getResultMessage(msg *generator.Descriptor) *generator.Descriptor {
 	for _, field := range msg.GetField() {
-		if field.GetName() == "result" && field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && !field.IsRepeated() {
-			return p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
+		switch field.GetName() {
+		case "result", "results":
+			if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE {
+				return p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
+			}
 		}
 	}
-	return nil
-}
 
-func (p *QueryValidatePlugin) getResultsMessage(msg *generator.Descriptor) *generator.Descriptor {
-	for _, field := range msg.GetField() {
-		if field.GetName() == "results" && field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && field.IsRepeated() {
-			return p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
-		}
-	}
 	return nil
 }
 
@@ -221,39 +208,172 @@ type fieldValidate struct {
 	option    options.FilteringOption
 }
 
+func (p *QueryValidatePlugin) syntheticField(name string, o *options.QueryValidate) *descriptor.FieldDescriptorProto {
+
+	if o.GetValueTypeUrl() == "" {
+		return nil
+	}
+
+	if msg := p.ObjectNamed(o.GetValueTypeUrl()); msg == nil {
+		p.Fail(`Cannot find named object of type `, o.GetValueTypeUrl())
+	}
+
+	var (
+		descLabel    = descriptor.FieldDescriptorProto_LABEL_OPTIONAL
+		descType     = descriptor.FieldDescriptorProto_TYPE_MESSAGE
+		descTypeName = o.GetValueTypeUrl()
+		descOptions  = descriptor.FieldOptions{}
+	)
+
+	f := &descriptor.FieldDescriptorProto{
+		Name:     &name,
+		TypeName: &descTypeName,
+		Type:     &descType,
+		Label:    &descLabel,
+		Options:  &descOptions,
+	}
+
+	if err := proto.SetExtension(f.Options, options.E_Validate, o); err != nil {
+		p.Fail(`cannot set extension for field `, name, `: `, err.Error())
+	}
+
+	return f
+}
+
 func (p *QueryValidatePlugin) getFilteringData(msg *generator.Descriptor) []fieldValidate {
-	var data []fieldValidate
-	for _, field := range msg.GetField() {
+	return p.getFilteringDataAux(msg, false)
+}
+
+func (p *QueryValidatePlugin) getFilteringDataAux(msg *generator.Descriptor, nested bool) []fieldValidate {
+
+	var (
+		data      []fieldValidate
+		fields    []*descriptor.FieldDescriptorProto
+		valueType options.QueryValidate_ValueType
+	)
+
+	for _, opts := range p.getMessageQueryValidationOptions(msg.DescriptorProto) {
+		if f := p.syntheticField(opts.GetName(), opts.GetValue()); f != nil {
+			fields = append(fields, f)
+		} else {
+			data = append(data, fieldValidate{
+				fieldName: opts.GetName(),
+				option: options.FilteringOption{
+					ValueType: opts.GetValue().GetValueType(),
+					Deny:      p.getDenyRules(opts.GetName(), opts.GetValue(), opts.GetValue().GetValueType()),
+				},
+			})
+		}
+	}
+
+	fields = append(fields, msg.GetField()...)
+
+	for _, field := range fields {
 		opts := getQueryValidationOptions(field)
+		if sfield := p.syntheticField(field.GetName(), opts); sfield != nil {
+			field = sfield
+			opts = getQueryValidationOptions(sfield)
+		}
+
 		fieldName := field.GetName()
 		if field.GetTypeName() == protoTypeJSONValue {
 			fieldName += ".*"
 		}
-		valueType := opts.GetValueType()
-		if valueType == options.QueryValidate_DEFAULT {
+
+		if valueType = opts.GetValueType(); valueType == options.QueryValidate_DEFAULT {
 			if field.IsRepeated() {
-				data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_DEFAULT, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
+				data = append(data, fieldValidate{
+					fieldName: fieldName,
+					option: options.FilteringOption{
+						ValueType: options.QueryValidate_DEFAULT,
+						Deny: []options.QueryValidate_FilterOperator{
+							options.QueryValidate_ALL,
+						},
+					},
+				})
 				continue
 			}
 
-			valueType = p.getValueType(field)
-			if valueType == options.QueryValidate_DEFAULT {
-				if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && opts.GetEnableNestedFields() {
-					nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
-					nestedDeny := p.getFilteringData(nestedMsg)
-					for _, v := range nestedDeny {
-						data = append(data, fieldValidate{fieldName + "." + v.fieldName, v.option})
-					}
+			if valueType = p.getValueType(field); valueType == options.QueryValidate_DEFAULT {
+
+				if nested {
+					// TBD: Unrecognized vs. Not Allowed
+					/*
+						data = append(data, fieldValidate{
+							fieldName: fieldName,
+							option: options.FilteringOption{
+								ValueType: options.QueryValidate_DEFAULT,
+								Deny: []options.QueryValidate_FilterOperator{
+									options.QueryValidate_ALL,
+								},
+							},
+						})
+					*/
 					continue
 				}
-				data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: options.QueryValidate_DEFAULT, Deny: []options.QueryValidate_FilterOperator{options.QueryValidate_ALL}}})
+
+				if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && opts.GetEnableNestedFields() {
+
+					nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
+					if nestedMsg == nil {
+						p.Fail(`Cannot find named object of type `, field.GetTypeName())
+					}
+
+					for _, v := range p.getFilteringDataAux(nestedMsg, true) {
+						if p.isAllowedNestedField(v.fieldName, opts) {
+							data = append(data, fieldValidate{
+								fieldName: fieldName + "." + v.fieldName,
+								option:    v.option,
+							})
+						} else {
+							// TBD: Unrecognized vs. Not Allowed
+							/*
+								data = append(data, fieldValidate{
+									fieldName: fieldName + "." + v.fieldName,
+									option: options.FilteringOption{
+										ValueType: options.QueryValidate_DEFAULT,
+										Deny: []options.QueryValidate_FilterOperator{
+											options.QueryValidate_ALL,
+										},
+									},
+								})
+							*/
+						}
+					}
+
+					continue
+				}
+
+				data = append(data, fieldValidate{
+					fieldName: fieldName,
+					option: options.FilteringOption{
+						ValueType: options.QueryValidate_DEFAULT,
+						Deny: []options.QueryValidate_FilterOperator{
+							options.QueryValidate_ALL,
+						},
+					},
+				})
 				continue
 			}
-
 		}
-		data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: valueType, Deny: p.getDenyRules(field, valueType)}})
+
+		data = append(data, fieldValidate{fieldName, options.FilteringOption{ValueType: valueType, Deny: p.getDenyRules(fieldName, opts, valueType)}})
 	}
 	return data
+}
+
+func (p *QueryValidatePlugin) isAllowedNestedField(n string, o *options.QueryValidate) bool {
+	if o == nil || len(o.NestedFields) == 0 {
+		return true
+	}
+
+	for _, v := range o.NestedFields {
+		if v == n {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProto) options.QueryValidate_ValueType {
@@ -262,6 +382,8 @@ func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProt
 		return options.QueryValidate_STRING
 	case descriptor.FieldDescriptorProto_TYPE_ENUM:
 		return options.QueryValidate_STRING
+	case descriptor.FieldDescriptorProto_TYPE_BOOL:
+		return options.QueryValidate_BOOL
 	case descriptor.FieldDescriptorProto_TYPE_DOUBLE,
 		descriptor.FieldDescriptorProto_TYPE_FLOAT,
 		descriptor.FieldDescriptorProto_TYPE_INT32,
@@ -288,6 +410,8 @@ func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProt
 			protoTypeUInt32Value,
 			protoTypeUInt64Value:
 			return options.QueryValidate_NUMBER
+		case protoTypeBoolValue:
+			return options.QueryValidate_BOOL
 		default:
 			return options.QueryValidate_DEFAULT
 		}
@@ -297,42 +421,105 @@ func (p *QueryValidatePlugin) getValueType(field *descriptor.FieldDescriptorProt
 }
 
 func (p *QueryValidatePlugin) getSortingData(msg *generator.Descriptor) []string {
-	var data []string
-	for _, field := range msg.GetField() {
+	return p.getSortingDataAux(msg, false)
+}
+
+func (p *QueryValidatePlugin) getSortingDataAux(msg *generator.Descriptor, nested bool) []string {
+
+	var (
+		data      []string
+		fields    []*descriptor.FieldDescriptorProto
+		valueType options.QueryValidate_ValueType
+	)
+
+	for _, opts := range p.getMessageQueryValidationOptions(msg.DescriptorProto) {
+		if f := p.syntheticField(opts.GetName(), opts.GetValue()); f != nil {
+			fields = append(fields, f)
+		} else if !opts.GetValue().GetSorting().GetDisable() {
+			data = append(data, opts.GetName())
+		}
+	}
+
+	fields = append(fields, msg.GetField()...)
+
+	for _, field := range fields {
 		opts := getQueryValidationOptions(field)
+		if sfield := p.syntheticField(field.GetName(), opts); sfield != nil {
+			field = sfield
+			opts = getQueryValidationOptions(sfield)
+		}
+
+		if opts.GetSorting().GetDisable() {
+			continue
+		}
+
 		fieldName := field.GetName()
-		filterType := opts.GetValueType()
-		if filterType == options.QueryValidate_DEFAULT {
+		if valueType = opts.GetValueType(); valueType == options.QueryValidate_DEFAULT {
+
 			if field.IsRepeated() {
 				continue
 			}
-			filterType = p.getValueType(field)
-			if filterType == options.QueryValidate_DEFAULT {
+
+			if valueType = p.getValueType(field); valueType == options.QueryValidate_DEFAULT {
+
+				if nested {
+					continue
+				}
+
 				if field.GetType() == descriptor.FieldDescriptorProto_TYPE_MESSAGE && opts.GetEnableNestedFields() {
+
 					nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
-					nestedData := p.getSortingData(nestedMsg)
-					for _, v := range nestedData {
+					for _, v := range p.getSortingDataAux(nestedMsg, true) {
 						data = append(data, fieldName+"."+v)
 					}
 				}
+
 				continue
 			}
+		}
 
-		}
-		if !opts.GetSorting().GetDisable() {
-			data = append(data, fieldName)
-		}
+		data = append(data, fieldName)
 	}
+
 	return data
 }
 
 func (p *QueryValidatePlugin) getFieldSelectionData(msg *generator.Descriptor) []string {
-	var data []string
-	for _, field := range msg.GetField() {
+	return p.getFieldSelectionDataAux(msg, false)
+}
+
+func (p *QueryValidatePlugin) getFieldSelectionDataAux(msg *generator.Descriptor, nested bool) []string {
+
+	var (
+		data      []string
+		fields    []*descriptor.FieldDescriptorProto
+		valueType options.QueryValidate_ValueType
+	)
+
+	for _, opts := range p.getMessageQueryValidationOptions(msg.DescriptorProto) {
+		if f := p.syntheticField(opts.GetName(), opts.GetValue()); f != nil {
+			fields = append(fields, f)
+		} else if !opts.GetValue().GetFieldSelection().GetDisable() {
+			data = append(data, opts.GetName())
+		}
+	}
+
+	fields = append(fields, msg.GetField()...)
+
+	for _, field := range fields {
 		opts := getQueryValidationOptions(field)
+		if sfield := p.syntheticField(field.GetName(), opts); sfield != nil {
+			field = sfield
+			opts = getQueryValidationOptions(sfield)
+		}
+
+		if opts.GetFieldSelection().GetDisable() {
+			continue
+		}
+
 		fieldName := field.GetName()
-		valueType := opts.GetValueType()
-		if valueType == options.QueryValidate_DEFAULT {
+		if valueType = opts.GetValueType(); valueType == options.QueryValidate_DEFAULT {
+
 			switch field.GetType() {
 			case descriptor.FieldDescriptorProto_TYPE_MESSAGE:
 				switch field.GetTypeName() {
@@ -342,6 +529,7 @@ func (p *QueryValidatePlugin) getFieldSelectionData(msg *generator.Descriptor) [
 					protoTypeUUIDValue,
 					protoTypeInet,
 					protoTypeStringValue:
+				case protoTypeBoolValue:
 				case protoTypeDoubleValue,
 					protoTypeFloatValue,
 					protoTypeInt32Value,
@@ -349,22 +537,26 @@ func (p *QueryValidatePlugin) getFieldSelectionData(msg *generator.Descriptor) [
 					protoTypeUInt32Value,
 					protoTypeUInt64Value:
 				default:
+
+					if nested {
+						continue
+					}
+
 					nestedMsg := p.ObjectNamed(field.GetTypeName()).(*generator.Descriptor)
-					nested := p.getFieldSelectionData(nestedMsg)
-					for _, v := range nested {
+					for _, v := range p.getFieldSelectionDataAux(nestedMsg, true) {
 						data = append(data, fieldName+"."+v)
 					}
 				}
 			}
 		}
+
 		data = append(data, fieldName)
 	}
+
 	return data
 }
 
-func (p *QueryValidatePlugin) getDenyRules(field *descriptor.FieldDescriptorProto, filterType options.QueryValidate_ValueType) []options.QueryValidate_FilterOperator {
-	opts := getQueryValidationOptions(field)
-	fieldName := field.GetName()
+func (p *QueryValidatePlugin) getDenyRules(fieldName string, opts *options.QueryValidate, filterType options.QueryValidate_ValueType) []options.QueryValidate_FilterOperator {
 	opsAllowed := opts.GetFiltering().GetAllow()
 	opsDenied := opts.GetFiltering().GetDeny()
 
@@ -396,6 +588,11 @@ func (p *QueryValidatePlugin) getDenyRules(field *descriptor.FieldDescriptorProt
 			options.QueryValidate_LE,
 			options.QueryValidate_IN,
 			options.QueryValidate_IEQ,
+		}
+	} else if filterType == options.QueryValidate_BOOL {
+		supportedOps = []options.QueryValidate_FilterOperator{
+			options.QueryValidate_EQ,
+			options.QueryValidate_IN,
 		}
 	}
 
@@ -490,7 +687,67 @@ func getQueryValidationOptions(field *descriptor.FieldDescriptorProto) *options.
 	if !ok {
 		return nil
 	}
+
+	if opts.GetValueTypeUrl() != "" {
+
+		if len(opts.NestedFields) > 0 {
+			opts.EnableNestedFields = true
+		}
+
+		if opts.Sorting == nil {
+			opts.Sorting = &options.QueryValidate_Sorting{Disable: true}
+		}
+
+		if opts.FieldSelection == nil {
+			opts.FieldSelection = &options.QueryValidate_FieldSelection{Disable: true}
+		}
+	}
 	return opts
+}
+
+func (p *QueryValidatePlugin) getMessageQueryValidationOptions(msg *descriptor.DescriptorProto) []*options.MessageQueryValidate_QueryValidateEntry {
+	if msg.Options == nil {
+		return nil
+	}
+
+	v, err := proto.GetExtension(msg.Options, options.E_Message)
+	if err != nil {
+		return nil
+	}
+
+	opts, ok := v.(*options.MessageQueryValidate)
+	if !ok {
+		return nil
+	}
+
+	res := make([]*options.MessageQueryValidate_QueryValidateEntry, len(opts.GetValidate()))
+	for i, opt := range opts.GetValidate() {
+
+		if opt.GetName() == "" {
+			p.Fail(`empty synthetic validate option for message `, msg.GetName())
+		}
+
+		o := opt.GetValue()
+		if o == nil {
+			p.Fail(`empty synthetic validate option for field `, msg.GetName(), `.`, opt.GetName())
+		}
+
+		if len(o.NestedFields) > 0 {
+			o.EnableNestedFields = true
+		}
+
+		if o.Sorting == nil {
+			o.Sorting = &options.QueryValidate_Sorting{Disable: true}
+		}
+
+		if o.FieldSelection == nil {
+			o.FieldSelection = &options.QueryValidate_FieldSelection{Disable: true}
+		}
+
+		res[i] = &options.MessageQueryValidate_QueryValidateEntry{Value: o, Name: opt.GetName()}
+	}
+
+	return res
 }
 
 func (p *QueryValidatePlugin) CleanFiles(response *plugin.CodeGeneratorResponse) {

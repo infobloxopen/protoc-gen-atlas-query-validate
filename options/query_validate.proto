@@ -1,4 +1,4 @@
-syntax = "proto2";
+syntax = "proto3";
 package atlas.query;
 
 option go_package = "github.com/infobloxopen/protoc-gen-atlas-query-validate/options;options";
@@ -7,7 +7,7 @@ import "google/protobuf/descriptor.proto";
 
 // Field level specifications
 extend google.protobuf.FieldOptions {
-  optional QueryValidate validate = 52121;
+  QueryValidate validate = 52121;
 }
 
 message QueryValidate {
@@ -26,16 +26,36 @@ message QueryValidate {
     repeated FilterOperator allow = 1;
     repeated FilterOperator deny = 2;
   }
-  optional Filtering filtering = 1;
+  Filtering filtering = 1;
   message Sorting {
-    optional bool disable = 1;
+    bool disable = 1;
   }
-  optional Sorting sorting = 2;
+  Sorting sorting = 2;
+  message FieldSelection {
+    bool disable = 1;
+  }
+  FieldSelection field_selection = 3;
   enum ValueType {
     DEFAULT = 0;
     STRING = 1;
     NUMBER = 2;
+    BOOL = 3;
   }
-  optional ValueType value_type  = 3;
-  optional bool enable_nested_fields = 4;
+  ValueType value_type  = 4;
+  string value_type_url = 5;
+
+  bool enable_nested_fields = 6;
+  repeated string nested_fields = 7;
+}
+
+message MessageQueryValidate {
+    message QueryValidateEntry {
+        string name = 1;
+        QueryValidate value = 2;
+    }
+    repeated QueryValidateEntry validate = 1;
+}
+
+extend google.protobuf.MessageOptions {
+  MessageQueryValidate message = 52121;
 }

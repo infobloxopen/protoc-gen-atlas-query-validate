@@ -2,6 +2,7 @@ package options
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/infobloxopen/atlas-app-toolkit/query"
@@ -53,9 +54,21 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 
 		switch x := f.(type) {
 		case *query.StringCondition:
-			if fieldInfo.ValueType != QueryValidate_STRING {
+			if fieldInfo.ValueType != QueryValidate_STRING && fieldInfo.ValueType != QueryValidate_BOOL {
 				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.ValueType)
 			}
+
+			if fieldInfo.ValueType == QueryValidate_BOOL {
+
+				if x.Type != query.StringCondition_EQ {
+					return fmt.Errorf("Operation %s is not allowed for %q", query.StringCondition_Type_name[int32(x.Type)], fieldTag)
+				}
+
+				if _, err := strconv.ParseBool(x.Value); err != nil {
+					return fmt.Errorf("Got invalid literal for field %q of type %s, expect 'true' or 'false'", fieldTag, fieldInfo.ValueType)
+				}
+			}
+
 			sc := &query.Filtering_StringCondition{x}
 			tp = query.StringCondition_Type_name[int32(sc.StringCondition.Type)]
 		case *query.NumberCondition:
@@ -65,9 +78,18 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 			nc := &query.Filtering_NumberCondition{x}
 			tp = query.NumberCondition_Type_name[int32(nc.NumberCondition.Type)]
 		case *query.StringArrayCondition:
-			if fieldInfo.ValueType != QueryValidate_STRING {
+			if fieldInfo.ValueType != QueryValidate_STRING && fieldInfo.ValueType != QueryValidate_BOOL {
 				return fmt.Errorf("Got invalid literal type for %s, expect %s", fieldTag, fieldInfo.ValueType)
 			}
+
+			if fieldInfo.ValueType == QueryValidate_BOOL {
+				for i, xv := range x.Values {
+					if _, err := strconv.ParseBool(xv); err != nil {
+						return fmt.Errorf("Got invalid literal for field %q of type %s at position %d, expect 'true' or 'false'", fieldTag, fieldInfo.ValueType, i)
+					}
+				}
+			}
+
 			nc := &query.Filtering_StringArrayCondition{x}
 			tp = query.StringArrayCondition_Type_name[int32(nc.StringArrayCondition.Type)]
 		case *query.NumberArrayCondition:
