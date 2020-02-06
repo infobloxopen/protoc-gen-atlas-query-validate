@@ -200,6 +200,7 @@ func ValidateSorting(p *query.Sorting, fields []string) error {
 			for _, v := range fields {
 				if v == tag {
 					ok = true
+					break
 				}
 			}
 			if !ok {
@@ -231,6 +232,7 @@ func ValidateFieldSelection(fs *query.FieldSelection, allowedFields []string) er
 		for _, v := range allowedFields {
 			if f == v {
 				ok = true
+				break
 			}
 		}
 		if !ok {
