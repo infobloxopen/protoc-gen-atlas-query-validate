@@ -6,8 +6,11 @@ import "google/protobuf/wrappers.proto";
 import "github.com/infobloxopen/protoc-gen-atlas-query-validate/options/query_validate.proto";
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
+option go_package = "github.com/infobloxopen/protoc-gen-atlas-query-validate/example;example";
+
 message User {
     option (atlas.query.message) = {
+            // enable_nested_fields: true;
             validate: {name: "custom_search", value: {value_type_url: ".example.Address", nested_fields: ["country"]}};
             validate: {name: "custom_search_2", value: {value_type: STRING, filtering: {allow: MATCH, allow: EQ}}};
             validate: {name: "list_of_addresses", value: {value_type_url: ".example.Address", enable_nested_fields: true, field_selection: {disable: false}}};
@@ -22,7 +25,7 @@ message User {
     google.protobuf.StringValue last_name = 6;
     string id = 7 [(atlas.query.validate).filtering.deny = ALL];
     repeated string array = 8;
-    CustomType custom_type = 9;
+    CustomType custom_type = 9 [(atlas.query.validate) = {enable_nested_fields: true}];
     CustomType custom_type_string = 10 [(atlas.query.validate) = {value_type: STRING}];
     Address home_address = 11 [(atlas.query.validate) = {enable_nested_fields: true}];
     Address work_address = 12;
@@ -32,6 +35,8 @@ message User {
 }
 
 message CustomType {
+  CustomType recur = 1;
+  string name = 2;
 }
 
 message Address {
@@ -67,4 +72,3 @@ service TestService {
     rpc Read (ReadRequest) returns (ReadUserResponse) {
     }
 }
-
