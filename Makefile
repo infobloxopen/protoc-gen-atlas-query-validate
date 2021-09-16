@@ -6,7 +6,7 @@ default: install
 .PHONY: options
 options:
 	protoc -I. -I$(SRCPATH) -I./vendor  \
-		--gogo_out="Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor:$(SRCPATH)" \
+		--go_out=:$(SRCPATH) \
 		options/query_validate.proto
 
 .PHONY: install
@@ -15,11 +15,11 @@ install:
 
 .PHONY: example
 example: default
-	protoc -I. -I${SRCPATH} -I./vendor -I./vendor/github.com/grpc-ecosystem/grpc-gateway --atlas-query-validate_out=. example/example.proto
+	protoc -I. -I${SRCPATH} -I./vendor -I./vendor/github.com/grpc-ecosystem/grpc-gateway/v2 --atlas-query-validate_out=$(GOPATH)/src/ example/example.proto
 
 test: example
 	go test  ./...
-	
+
 .PHONY: vendor
 vendor:
 	dep ensure -vendor-only

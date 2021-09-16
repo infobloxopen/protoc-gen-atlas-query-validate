@@ -6,6 +6,8 @@ import "google/protobuf/wrappers.proto";
 import "github.com/infobloxopen/protoc-gen-atlas-query-validate/options/query_validate.proto";
 import "github.com/infobloxopen/atlas-app-toolkit/query/collection_operators.proto";
 
+option go_package = "github.com/infobloxopen/protoc-gen-atlas-query-validate/example;example";
+
 message User {
     option (atlas.query.message) = {
             validate: {name: "custom_search", value: {value_type_url: ".example.Address", nested_fields: ["country"]}};
@@ -67,4 +69,3 @@ service TestService {
     rpc Read (ReadRequest) returns (ReadUserResponse) {
     }
 }
-
