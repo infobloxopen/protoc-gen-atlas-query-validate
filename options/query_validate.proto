@@ -54,6 +54,8 @@ message MessageQueryValidate {
         QueryValidate value = 2;
     }
     repeated QueryValidateEntry validate = 1;
+    int32 nested_field_depth_limit = 2;
+    bool enable_nested_fields = 3;
 }
 
 extend google.protobuf.MessageOptions {

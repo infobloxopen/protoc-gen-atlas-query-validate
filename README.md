@@ -2,7 +2,7 @@
 
 ### Purpose
 
-A [protobuf](https://developers.google.com/protocol-buffers/) compiler plugin 
+A [protobuf](https://developers.google.com/protocol-buffers/) compiler plugin
 designed to simplify validation of [Atlas](https://github.com/infobloxopen/atlas-app-toolkit)
 [gRPC](https://grpc.io/) List [query](https://github.com/infobloxopen/atlas-app-toolkit/blob/master/query/collection_operators.proto) parameters
 by generating .pb.atlas.query.validate.go files with validation rules and functions.
@@ -58,7 +58,7 @@ The following table shows what is allowed for each *value_type*:
 
 |                                     | STRING | NUMBER |
 |-------------------------------------|--------|--------|
-| **Filtering operators**                 | EQ, MATCH, GT, GE, LT, LE, IEQ, IN | EQ, GT, GE, LT, LE, IN | 
+| **Filtering operators**                 | EQ, MATCH, GT, GE, LT, LE, IEQ, IN | EQ, GT, GE, LT, LE, IN |
 | **Filtering value type/condition type** | String, null/StringCondition, NullCondition, StringArray(only for IN)| Number, null/NumberCondition, NullCondition, NumberArray(only for IN)|
 
 The next table shows how *value_type* is computed from a proto field type:
@@ -118,7 +118,7 @@ field-level options in order to support different validation rules for List meth
 bool on_vacation = 3 [(atlas.query.validate).sorting.disable = true];
 ```
 
-* In order to customize the list of allowed filtering operators pass either a set of `(atlas.query.validate).filtering.allow` or 
+* In order to customize the list of allowed filtering operators pass either a set of `(atlas.query.validate).filtering.allow` or
 a set of `(atlas.query.validate).filtering.deny` options.
   - In case of using `(atlas.query.validate).filtering.allow` only specified filtering operators are allowed:
     ```golang
@@ -133,9 +133,17 @@ a set of `(atlas.query.validate).filtering.deny` options.
 CustomType custom_type_string = 10 [(atlas.query.validate) = {value_type: STRING}];
 ```
 * In order to enable filtering/sorting by nested fields set `(atlas.query.validate).enable_nested_fields` option to true
-on the field of a message type.
+on the field of a message type or as message option.
+Note that this overrides any field level settings.
 
 ```golang
+message User {
+  option (atlas.query.message) = {
+    enable_nested_fields: true;
+  };
+  ...
+}
+
 message User {
     Address home_address = 11 [(atlas.query.validate) = {enable_nested_fields: true}];
     Address work_address = 12;
@@ -147,6 +155,27 @@ message Address {
 }
 ```
 
+* You can also specify the maximum nesting depth using the `nested_field_depth_limit`
+option at the message level (the default is second level fields only).
+
+```golang
+message User {
+  option (atlas.query.message) = {
+    enable_nested_fields: true;
+    nested_field_depth_limit: 3;
+  };
+  ...
+}
+```
+
+* Nesting and nested field depth can also be set for the entire code generation
+process as parameters on the protoc command
+
+```sh
+protoc ... \
+ --atlas-query-validate_out="nested_field_depth_limit=3,enable_nested_fields=true:." \
+ example/example.proto
+```
 
 ### Examples
 
