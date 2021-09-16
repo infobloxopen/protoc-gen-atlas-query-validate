@@ -49,8 +49,6 @@ const (
 type QueryValidateBuilder struct {
 	plugin                                  *protogen.Plugin
 	messageTypes                            map[string]*protogen.Message
-	currentPackage                          string
-	currentFile                             string
 	requiredFilteringValidationVarName      string
 	requiredSortingValidationVarName        string
 	validateFilteringMethodName             string
@@ -138,7 +136,6 @@ func (p *QueryValidateBuilder) Generate() (*pluginpb.CodeGeneratorResponse, erro
 		shortName := pathPieces[len(pathPieces)-1]
 
 		g.P("package ", protoFile.GoPackageName)
-		p.currentPackage = protoFile.GoImportPath.String()
 		p.requiredFilteringValidationVarName = util.Camel(shortName) + methodFilteringVarSuffix
 		p.requiredSortingValidationVarName = util.Camel(shortName) + methodSortingVarSuffix
 		p.requiredFieldSelectionValidationVarName = util.Camel(shortName) + methodFieldSelectionVarSuffix
