@@ -8,7 +8,7 @@ SRCROOT_IN_CONTAINER := /go/src/$(PROJECT_ROOT)
 DOCKERPATH           := /go/src
 DOCKER_RUNNER        := docker run --rm
 DOCKER_RUNNER        += -v $(SRCROOT_ON_HOST):$(SRCROOT_IN_CONTAINER)
-DOCKER_GENERATOR     := infoblox/atlas-gentool:v19.1
+DOCKER_GENERATOR     := infoblox/atlas-gentool:latest
 GENERATOR            := $(DOCKER_RUNNER) $(DOCKER_GENERATOR)
 
 default: install
@@ -16,7 +16,7 @@ default: install
 .PHONY: options
 options:
 	@$(GENERATOR)  \
-		--gogo_out="Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor:$(DOCKERPATH)" \
+		--go_out=":$(DOCKERPATH)" \
 		options/query_validate.proto
 
 .PHONY: install
