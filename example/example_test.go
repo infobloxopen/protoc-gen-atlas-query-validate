@@ -43,6 +43,10 @@ func TestValidateFiltering(t *testing.T) {
 		{`boolean_field=="True"`, false},
 		{`boolean_field=="Blah"`, true},
 		{`boolean_field:="True"`, true},
+		{`first_name~".*Sam"`, false},
+		{`first_name~"*Sam"`, true},
+		{`first_name~"*Sam" and sure_name~"*Samuelson"`, true},
+		{`first_name~"Sam" and sure_name~"*Samuelson"`, true},
 	}
 
 	for _, test := range tests {
