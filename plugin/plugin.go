@@ -687,7 +687,7 @@ func (p *QueryValidateBuilder) getDenyRules(fieldName string, opts *options.Quer
 }
 
 func (p *QueryValidateBuilder) genValidateFiltering(g *protogen.GeneratedFile) {
-	generateImport("Filtering", "github.com/infobloxopen/atlas-app-toolkit/query", g)
+	generateImport("Filtering", "github.com/infobloxopen/atlas-app-toolkit/v2/query", g)
 	g.P(`func `, p.validateFilteringMethodName, `(methodName string, f *query.Filtering) error {`)
 	g.P(`info, ok := `, p.requiredFilteringValidationVarName, `[methodName]`)
 	g.P(`if !ok {`)
