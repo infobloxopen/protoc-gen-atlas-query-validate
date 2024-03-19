@@ -228,7 +228,7 @@ func (p *QueryValidateBuilder) genFieldSelection(g *protogen.GeneratedFile, file
 
 func (p *QueryValidateBuilder) hasFieldSelection(msg *protogen.Message) bool {
 	for _, msgField := range msg.Fields {
-		if msgField.Message.Desc.FullName() == fieldSelection {
+		if msgField.Message != nil && msgField.Message.Desc.FullName() == fieldSelection {
 			return true
 		}
 	}
@@ -237,7 +237,7 @@ func (p *QueryValidateBuilder) hasFieldSelection(msg *protogen.Message) bool {
 
 func (p *QueryValidateBuilder) hasFiltering(msg *protogen.Message) bool {
 	for _, msgField := range msg.Fields {
-		if msgField.Message.Desc.FullName() == filtering {
+		if msgField.Message != nil && msgField.Message.Desc.FullName() == filtering {
 			return true
 		}
 	}
@@ -246,7 +246,7 @@ func (p *QueryValidateBuilder) hasFiltering(msg *protogen.Message) bool {
 
 func (p *QueryValidateBuilder) hasSorting(msg *protogen.Message) bool {
 	for _, msgField := range msg.Fields {
-		if msgField.Message.Desc.FullName() == sorting {
+		if msgField.Message != nil && msgField.Message.Desc.FullName() == sorting {
 			return true
 		}
 	}
