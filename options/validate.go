@@ -146,7 +146,7 @@ func ValidateFiltering(f *query.Filtering, messageInfo map[string]FilteringOptio
 		right := val.GetRight()
 		switch rightVal := right.(type) {
 		case *query.LogicalOperator_RightOperator:
-			getOperator(rightVal.RightOperator)
+			vres = getOperator(rightVal.RightOperator)
 
 		case *query.LogicalOperator_RightStringCondition:
 			vres = validate(rightVal.RightStringCondition.GetFieldPath(), rightVal.RightStringCondition)
